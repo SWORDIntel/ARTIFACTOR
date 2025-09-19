@@ -1,0 +1,124 @@
+{
+  "name": "github-plugin",
+  "version": "1.0.0",
+  "description": "GitHub integration plugin for ARTIFACTOR - repository management, commit tracking, and collaboration features",
+  "author": "ARTIFACTOR Team",
+  "license": "MIT",
+  "homepage": "https://github.com/artifactor/github-plugin",
+
+  "entry_point": "main.py",
+  "api_version": "1.0",
+  "min_artifactor_version": "3.0.0",
+
+  "dependencies": [],
+  "python_requirements": [
+    "aiohttp>=3.8.0",
+    "PyGithub>=1.58.0",
+    "cryptography>=40.0.0"
+  ],
+  "system_requirements": ["git"],
+
+  "permissions": [
+    "network_access",
+    "github_api",
+    "repository_access",
+    "webhook_management"
+  ],
+  "sandbox_mode": true,
+  "network_access": true,
+  "file_system_access": [
+    "/tmp/github-plugin",
+    "/plugin/workspace"
+  ],
+
+  "agent_integration": true,
+  "supported_agents": [
+    "CONSTRUCTOR",
+    "ARCHITECT",
+    "DEBUGGER",
+    "PYTHON_INTERNAL"
+  ],
+
+  "ui_components": [
+    {
+      "type": "panel",
+      "name": "GitHub Repository Manager",
+      "component": "RepositoryPanel",
+      "position": "sidebar"
+    },
+    {
+      "type": "modal",
+      "name": "Repository Settings",
+      "component": "RepositorySettingsModal"
+    },
+    {
+      "type": "widget",
+      "name": "Commit Status",
+      "component": "CommitStatusWidget",
+      "position": "statusbar"
+    }
+  ],
+
+  "menu_items": [
+    {
+      "label": "GitHub",
+      "submenu": [
+        {
+          "label": "Connect Repository",
+          "action": "connect_repository"
+        },
+        {
+          "label": "Sync Artifacts",
+          "action": "sync_artifacts"
+        },
+        {
+          "label": "Create Release",
+          "action": "create_release"
+        },
+        {
+          "label": "Settings",
+          "action": "open_settings"
+        }
+      ]
+    }
+  ],
+
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "github_token": {
+        "type": "string",
+        "description": "GitHub personal access token",
+        "format": "password"
+      },
+      "default_repository": {
+        "type": "string",
+        "description": "Default repository (owner/repo format)"
+      },
+      "auto_sync": {
+        "type": "boolean",
+        "description": "Automatically sync artifacts to GitHub",
+        "default": false
+      },
+      "webhook_secret": {
+        "type": "string",
+        "description": "Secret for GitHub webhook verification",
+        "format": "password"
+      },
+      "commit_template": {
+        "type": "string",
+        "description": "Template for commit messages",
+        "default": "Add artifact: {artifact_name}\n\n{description}"
+      }
+    },
+    "required": ["github_token"]
+  },
+
+  "default_config": {
+    "auto_sync": false,
+    "commit_template": "Add artifact: {artifact_name}\n\n{description}",
+    "sync_on_create": true,
+    "sync_on_update": false,
+    "create_pull_requests": false
+  }
+}

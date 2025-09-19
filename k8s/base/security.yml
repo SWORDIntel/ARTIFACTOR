@@ -1,0 +1,482 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: artifactor-security
+  namespace: artifactor
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: artifactor-security-role
+  namespace: artifactor
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: artifactor-security-binding
+  namespace: artifactor
+subjects:
+- kind: ServiceAccount
+  name: artifactor-security
+  namespace: artifactor
+roleRef:
+  kind: Role
+  name: artifactor-security-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: artifactor-network-policy
+  namespace: artifactor
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: artifactor
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 9090  # Metrics
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53   # DNS
+    - protocol: UDP
+      port: 53   # DNS
+    - protocol: TCP
+      port: 443  # HTTPS
+    - protocol: TCP
+      port: 80   # HTTP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres-primary
+    - podSelector:
+        matchLabels:
+          app: postgres-replica
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-scanner-config
+  namespace: artifactor
+data:
+  trivy-config.yaml: |
+    cache:
+      dir: /tmp/trivy/cache
+    db:
+      repository: ghcr.io/aquasecurity/trivy-db
+    scan:
+      security-checks:
+        - vuln
+        - config
+        - secret
+      severity:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+      ignore-unfixed: false
+    format: json
+    output: /tmp/trivy/results.json
+
+  cis-benchmark.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Running CIS Kubernetes Benchmark..."
+
+    # Check 1: RBAC is enabled
+    if kubectl auth can-i '*' '*' --as=system:anonymous 2>/dev/null; then
+      echo "FAIL: Anonymous users have cluster-admin privileges"
+    else
+      echo "PASS: Anonymous access properly restricted"
+    fi
+
+    # Check 2: Network policies are in place
+    if kubectl get networkpolicies -n artifactor | grep -q artifactor-network-policy; then
+      echo "PASS: Network policies configured"
+    else
+      echo "FAIL: No network policies found"
+    fi
+
+    # Check 3: Pod Security Standards
+    kubectl get pods -n artifactor -o json | jq -r '
+      .items[] |
+      select(.spec.securityContext.runAsNonRoot != true or
+             .spec.securityContext.readOnlyRootFilesystem != true) |
+      "FAIL: Pod " + .metadata.name + " does not meet security standards"
+    '
+
+    # Check 4: Resource limits
+    kubectl get pods -n artifactor -o json | jq -r '
+      .items[] |
+      select(.spec.containers[].resources.limits == null) |
+      "FAIL: Pod " + .metadata.name + " missing resource limits"
+    '
+
+    echo "CIS Benchmark scan completed"
+
+  security-scan.sh: |
+    #!/bin/bash
+    set -e
+
+    SCAN_DIR="/security-scans"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    REPORT_FILE="${SCAN_DIR}/security_report_${TIMESTAMP}.json"
+
+    mkdir -p ${SCAN_DIR}
+
+    echo "Starting comprehensive security scan..."
+
+    # Image vulnerability scanning
+    echo "Scanning container images..."
+    for image in $(kubectl get pods -n artifactor -o jsonpath='{.items[*].spec.containers[*].image}' | tr ' ' '\n' | sort -u); do
+      echo "Scanning image: $image"
+      trivy image --config /config/trivy-config.yaml $image || true
+    done
+
+    # Configuration scanning
+    echo "Scanning Kubernetes configurations..."
+    trivy config /manifests/ --config /config/trivy-config.yaml || true
+
+    # Network security assessment
+    echo "Assessing network security..."
+    /scripts/cis-benchmark.sh
+
+    # Secret scanning
+    echo "Scanning for exposed secrets..."
+    kubectl get secrets -n artifactor -o json | jq -r '
+      .items[] |
+      select(.type != "kubernetes.io/service-account-token") |
+      "Checking secret: " + .metadata.name
+    '
+
+    # Generate final report
+    cat > ${REPORT_FILE} << EOF
+    {
+      "timestamp": "${TIMESTAMP}",
+      "scan_type": "comprehensive",
+      "namespace": "artifactor",
+      "summary": {
+        "images_scanned": $(kubectl get pods -n artifactor -o jsonpath='{.items[*].spec.containers[*].image}' | tr ' ' '\n' | sort -u | wc -l),
+        "configs_scanned": $(find /manifests -name "*.yml" -o -name "*.yaml" | wc -l),
+        "secrets_found": $(kubectl get secrets -n artifactor --no-headers | wc -l)
+      }
+    }
+    EOF
+
+    echo "Security scan completed. Report saved to: ${REPORT_FILE}"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: security-scanner
+  namespace: artifactor
+spec:
+  schedule: "0 6 * * *"  # Daily at 6 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: artifactor-security
+          containers:
+          - name: security-scanner
+            image: aquasec/trivy:latest
+            env:
+            - name: TRIVY_CACHE_DIR
+              value: /tmp/trivy/cache
+            volumeMounts:
+            - name: security-scanner-config
+              mountPath: /config
+            - name: security-scripts
+              mountPath: /scripts
+            - name: manifests
+              mountPath: /manifests
+              readOnly: true
+            - name: security-scans
+              mountPath: /security-scans
+            command:
+            - /bin/bash
+            - /scripts/security-scan.sh
+          volumes:
+          - name: security-scanner-config
+            configMap:
+              name: security-scanner-config
+          - name: security-scripts
+            configMap:
+              name: security-scanner-config
+              defaultMode: 0755
+          - name: manifests
+            configMap:
+              name: deployment-manifests
+          - name: security-scans
+            persistentVolumeClaim:
+              claimName: security-scans-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: security-scans-pvc
+  namespace: artifactor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard-ssd
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: artifactor-psp
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: true
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-config
+  namespace: artifactor
+data:
+  oauth2-proxy.cfg: |
+    provider = "github"
+    github_org = "your-github-org"
+    github_team = "artifactor-users"
+    client_id = "your-github-oauth-app-id"
+    email_domains = [
+      "your-domain.com"
+    ]
+    upstreams = [
+      "http://artifactor-frontend-service:3000",
+      "http://artifactor-backend-service:8000"
+    ]
+    cookie_secret = "change-this-to-a-32-byte-secret"
+    cookie_secure = true
+    cookie_httponly = true
+    cookie_name = "_oauth2_proxy"
+    cookie_expire = "168h"
+    cookie_refresh = "1h"
+    skip_auth_regex = [
+      "^/health",
+      "^/metrics",
+      "^/api/health"
+    ]
+    set_xauthrequest = true
+    set_authorization_header = true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: artifactor
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        ports:
+        - containerPort: 4180
+        env:
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: GITHUB_CLIENT_SECRET
+        args:
+        - --config=/etc/oauth2-proxy/oauth2-proxy.cfg
+        - --http-address=0.0.0.0:4180
+        - --redirect-url=https://artifactor.app/oauth2/callback
+        volumeMounts:
+        - name: oauth2-proxy-config
+          mountPath: /etc/oauth2-proxy
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 4180
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: oauth2-proxy-config
+        configMap:
+          name: oauth2-proxy-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-service
+  namespace: artifactor
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+  - port: 4180
+    targetPort: 4180
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: falco
+  namespace: artifactor
+spec:
+  selector:
+    matchLabels:
+      app: falco
+  template:
+    metadata:
+      labels:
+        app: falco
+    spec:
+      serviceAccountName: artifactor-security
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: falco
+        image: falcosecurity/falco-no-driver:latest
+        securityContext:
+          privileged: true
+        env:
+        - name: FALCO_GRPC_ENABLED
+          value: "true"
+        - name: FALCO_GRPC_BIND_ADDRESS
+          value: "0.0.0.0:5060"
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: dev
+          mountPath: /host/dev
+          readOnly: true
+        - name: run-containerd
+          mountPath: /host/run/containerd
+          readOnly: true
+        - name: var-lib-containerd
+          mountPath: /host/var/lib/containerd
+          readOnly: true
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: dev
+        hostPath:
+          path: /dev
+      - name: run-containerd
+        hostPath:
+          path: /run/containerd
+      - name: var-lib-containerd
+        hostPath:
+          path: /var/lib/containerd
+      tolerations:
+      - operator: Exists

@@ -1,0 +1,79 @@
+# ML and AI Dependencies for ARTIFACTOR v3.0 Advanced Classification
+
+# Core ML libraries
+scikit-learn==1.3.2
+numpy==1.24.4
+pandas==2.1.4
+
+# Natural Language Processing
+nltk==3.8.1
+spacy==3.7.2
+transformers==4.36.2
+sentence-transformers==2.2.2
+textblob==0.17.1
+
+# Deep Learning (optional for enhanced models)
+torch==2.1.2
+tensorflow==2.15.0
+
+# Text preprocessing
+regex==2023.10.3
+langdetect==1.0.9
+chardet==5.2.0
+
+# Feature extraction
+gensim==4.3.2
+wordcloud==1.9.2
+
+# Clustering and classification
+hdbscan==0.8.33
+umap-learn==0.5.4
+
+# Vector database and embeddings
+faiss-cpu==1.7.4
+chromadb==0.4.18
+
+# Performance optimization
+joblib==1.3.2
+numba==0.58.1
+
+# Language models and tokenizers
+tokenizers==0.15.0
+accelerate==0.25.0
+
+# Text similarity and matching
+fuzzywuzzy==0.18.0
+rapidfuzz==3.5.2
+
+# Statistical analysis
+scipy==1.11.4
+statsmodels==0.14.0
+
+# Visualization for ML insights
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# ML model serialization
+pickle-mixin==1.0.2
+cloudpickle==3.0.0
+
+# Progress tracking
+tqdm==4.66.1
+
+# Configuration for ML
+omegaconf==2.3.0
+hydra-core==1.3.2
+
+# Memory optimization
+psutil==5.9.6
+
+# Async ML processing
+asyncio-pool==0.6.0
+
+# Model versioning and tracking
+mlflow==2.8.1
+
+# Hardware acceleration support
+# Note: NPU integration via OpenVINO will be coordinated with NPU agent
+openvino==2023.2.0

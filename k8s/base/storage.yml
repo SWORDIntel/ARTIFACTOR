@@ -1,0 +1,84 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-ssd
+  namespace: artifactor
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp3
+  iops: "3000"
+  throughput: "125"
+  encrypted: "true"
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-ssd
+  namespace: artifactor
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  encrypted: "true"
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: models-pvc
+  namespace: artifactor
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plugins-pvc
+  namespace: artifactor
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: standard-ssd
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: logs-pvc
+  namespace: artifactor
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: standard-ssd
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: artifactor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard-ssd
+  resources:
+    requests:
+      storage: 500Gi

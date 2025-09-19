@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactor-backend
+spec:
+  template:
+    spec:
+      containers:
+      - name: backend
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "4000m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactor-frontend
+spec:
+  template:
+    spec:
+      containers:
+      - name: frontend
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  template:
+    spec:
+      containers:
+      - name: nginx
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-primary
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-replica
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  template:
+    spec:
+      containers:
+      - name: redis
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"

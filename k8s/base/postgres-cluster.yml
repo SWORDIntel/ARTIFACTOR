@@ -1,0 +1,415 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-primary
+  namespace: artifactor
+spec:
+  serviceName: postgres-primary-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-primary
+      role: master
+  template:
+    metadata:
+      labels:
+        app: postgres-primary
+        role: master
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: artifactor-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_REPLICATION_USER
+          value: replicator
+        - name: POSTGRES_REPLICATION_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_REPLICATION_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        - name: postgres-hba
+          mountPath: /etc/postgresql/pg_hba.conf
+          subPath: pg_hba.conf
+        - name: postgres-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        command:
+        - postgres
+        - -c
+        - config_file=/etc/postgresql/postgresql.conf
+        - -c
+        - hba_file=/etc/postgresql/pg_hba.conf
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          exec:
+            command:
+            - /usr/bin/pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /usr/bin/pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-primary-config
+      - name: postgres-hba
+        configMap:
+          name: postgres-primary-config
+      - name: postgres-scripts
+        configMap:
+          name: postgres-scripts
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-replica
+  namespace: artifactor
+spec:
+  serviceName: postgres-replica-service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: postgres-replica
+      role: slave
+  template:
+    metadata:
+      labels:
+        app: postgres-replica
+        role: slave
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: artifactor-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_REPLICATION_USER
+          value: replicator
+        - name: POSTGRES_REPLICATION_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_REPLICATION_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: PGUSER
+          value: $(POSTGRES_USER)
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        - name: postgres-recovery
+          mountPath: /etc/postgresql/recovery.conf
+          subPath: recovery.conf
+        command:
+        - postgres
+        - -c
+        - config_file=/etc/postgresql/postgresql.conf
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - /usr/bin/pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /usr/bin/pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-replica-config
+      - name: postgres-recovery
+        configMap:
+          name: postgres-replica-config
+      initContainers:
+      - name: postgres-replica-init
+        image: postgres:15
+        env:
+        - name: POSTGRES_REPLICATION_USER
+          value: replicator
+        - name: POSTGRES_REPLICATION_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_REPLICATION_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        command:
+        - bash
+        - -c
+        - |
+          if [ ! -f $PGDATA/PG_VERSION ]; then
+            echo "Initializing replica from primary..."
+            pg_basebackup -h postgres-primary-service -D $PGDATA -U $POSTGRES_REPLICATION_USER -w
+            echo "standby_mode = 'on'" >> $PGDATA/recovery.conf
+            echo "primary_conninfo = 'host=postgres-primary-service port=5432 user=$POSTGRES_REPLICATION_USER'" >> $PGDATA/recovery.conf
+            echo "trigger_file = '/var/lib/postgresql/data/promote_trigger'" >> $PGDATA/recovery.conf
+          fi
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-primary-config
+  namespace: artifactor
+data:
+  postgresql.conf: |
+    # Performance
+    shared_buffers = 256MB
+    effective_cache_size = 1GB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+
+    # Replication
+    wal_level = replica
+    max_wal_senders = 10
+    wal_keep_segments = 32
+    archive_mode = on
+    archive_command = 'cp %p /var/lib/postgresql/data/archive/%f'
+    hot_standby = on
+    hot_standby_feedback = on
+
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = 'pg_log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_rotation_age = 1d
+    log_rotation_size = 100MB
+    log_min_duration_statement = 1000
+    log_checkpoints = on
+    log_connections = on
+    log_disconnections = on
+    log_lock_waits = on
+
+    # Connection
+    listen_addresses = '*'
+    port = 5432
+    max_connections = 200
+
+  pg_hba.conf: |
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    local   all             all                                     trust
+    host    all             all             127.0.0.1/32            md5
+    host    all             all             ::1/128                 md5
+    host    all             all             0.0.0.0/0               md5
+    host    replication     replicator      0.0.0.0/0               md5
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-replica-config
+  namespace: artifactor
+data:
+  postgresql.conf: |
+    # Performance
+    shared_buffers = 128MB
+    effective_cache_size = 512MB
+    maintenance_work_mem = 32MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 8MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+
+    # Replication
+    wal_level = replica
+    hot_standby = on
+    hot_standby_feedback = on
+    max_standby_streaming_delay = 30s
+    max_standby_archive_delay = 30s
+
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = 'pg_log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_rotation_age = 1d
+    log_rotation_size = 100MB
+    log_min_duration_statement = 1000
+
+    # Connection
+    listen_addresses = '*'
+    port = 5432
+    max_connections = 100
+
+  recovery.conf: |
+    standby_mode = 'on'
+    primary_conninfo = 'host=postgres-primary-service port=5432 user=replicator'
+    trigger_file = '/var/lib/postgresql/data/promote_trigger'
+    recovery_target_timeline = 'latest'
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-scripts
+  namespace: artifactor
+data:
+  01-replication-setup.sql: |
+    CREATE USER replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'replication_password';
+    SELECT pg_create_physical_replication_slot('replica_slot');
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-primary-service
+  namespace: artifactor
+spec:
+  selector:
+    app: postgres-primary
+    role: master
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-replica-service
+  namespace: artifactor
+spec:
+  selector:
+    app: postgres-replica
+    role: slave
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: artifactor
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  selector:
+    app: postgres-primary
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-read-service
+  namespace: artifactor
+spec:
+  selector:
+    role: slave
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP

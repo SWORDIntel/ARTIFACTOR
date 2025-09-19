@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: artifactor-staging
+
+resources:
+- ../base
+
+patchesStrategicMerge:
+- replica-count.yml
+- resource-limits.yml
+
+configMapGenerator:
+- name: staging-config
+  literals:
+  - ENVIRONMENT=staging
+  - LOG_LEVEL=DEBUG
+  - DEBUG=true
+  - API_WORKERS=4
+  - REDIS_MAX_CONNECTIONS=500
+  - DB_POOL_SIZE=10
+  - WS_MAX_CONNECTIONS=1000
+
+secretGenerator:
+- name: staging-secrets
+  literals:
+  - POSTGRES_PASSWORD=staging-password-change-me
+  - REDIS_PASSWORD=staging-redis-password
+  - SECRET_KEY=staging-secret-key-change-me
+  - GRAFANA_PASSWORD=staging-grafana-password
+  - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/STAGING/WEBHOOK
+  - S3_BACKUP_BUCKET=artifactor-staging-backups
+  - AWS_ACCESS_KEY_ID=your-staging-aws-access-key
+  - AWS_SECRET_ACCESS_KEY=your-staging-aws-secret-key
+  - GITHUB_CLIENT_SECRET=your-staging-github-oauth-secret
+  - OPENAI_API_KEY=your-staging-openai-api-key
+  - CLAUDE_API_KEY=your-staging-claude-api-key
+
+images:
+- name: ghcr.io/artifactor/backend
+  newTag: staging
+- name: ghcr.io/artifactor/frontend
+  newTag: staging
+- name: ghcr.io/artifactor/nginx
+  newTag: staging
+
+commonLabels:
+  environment: staging
+  version: v3.0

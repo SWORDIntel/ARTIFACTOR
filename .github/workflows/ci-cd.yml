@@ -1,0 +1,330 @@
+name: ARTIFACTOR v3.0 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Security and Quality Checks
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Backend Testing
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: artifactor_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r ml_requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/artifactor_test
+        run: |
+          cd backend
+          python -m alembic upgrade head
+
+      - name: Run backend tests
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/artifactor_test
+          REDIS_URL: redis://localhost:6379
+          SECRET_KEY: test_secret_key
+        run: |
+          cd backend
+          python -m pytest tests/ -v --cov=. --cov-report=xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+
+  # Frontend Testing
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run linting
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run type checking
+        run: |
+          cd frontend
+          npm run type-check
+
+      - name: Run unit tests
+        run: |
+          cd frontend
+          npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+
+  # Performance Testing
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: [backend-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install locust requests pandas
+
+      - name: Run performance tests
+        run: |
+          python performance_regression_test.py --headless --duration 300
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance_test_results.json
+
+  # Build and Push Images
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [security-scan, backend-test, frontend-test, performance-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        component: [backend, frontend, nginx]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.component }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_STAGING }}
+        run: |
+          echo "$KUBE_CONFIG" | base64 -d > /tmp/kubeconfig
+          echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV
+
+      - name: Deploy to staging
+        run: |
+          kubectl apply -f k8s/staging/
+          kubectl set image deployment/artifactor-backend \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:sha-${{ github.sha }}
+          kubectl set image deployment/artifactor-frontend \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:sha-${{ github.sha }}
+          kubectl rollout status deployment/artifactor-backend
+          kubectl rollout status deployment/artifactor-frontend
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+        run: |
+          echo "$KUBE_CONFIG" | base64 -d > /tmp/kubeconfig
+          echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV
+
+      - name: Blue-Green Deployment
+        run: |
+          # Check current active deployment
+          CURRENT_COLOR=$(kubectl get service artifactor-lb -o jsonpath='{.spec.selector.version}' || echo "blue")
+          NEW_COLOR=$([ "$CURRENT_COLOR" = "blue" ] && echo "green" || echo "blue")
+
+          echo "Current deployment: $CURRENT_COLOR, New deployment: $NEW_COLOR"
+
+          # Deploy new version
+          kubectl apply -f k8s/production/
+          kubectl set image deployment/artifactor-backend-$NEW_COLOR \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:sha-${{ github.sha }}
+          kubectl set image deployment/artifactor-frontend-$NEW_COLOR \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:sha-${{ github.sha }}
+
+          # Wait for new deployment to be ready
+          kubectl rollout status deployment/artifactor-backend-$NEW_COLOR
+          kubectl rollout status deployment/artifactor-frontend-$NEW_COLOR
+
+          # Run health checks
+          kubectl apply -f k8s/health-check-job.yml
+          kubectl wait --for=condition=complete job/health-check --timeout=300s
+
+          # Switch traffic to new deployment
+          kubectl patch service artifactor-lb -p '{"spec":{"selector":{"version":"'$NEW_COLOR'"}}}'
+
+          # Wait and verify
+          sleep 30
+          kubectl apply -f k8s/smoke-test-job.yml
+          kubectl wait --for=condition=complete job/smoke-test --timeout=180s
+
+  # Post-deployment monitoring
+  post-deploy-monitoring:
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Setup monitoring alerts
+        run: |
+          curl -X POST "${{ secrets.PROMETHEUS_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "alerts": [{
+                "name": "deployment-monitoring",
+                "enabled": true,
+                "duration": "1h",
+                "conditions": {
+                  "error_rate": "> 5%",
+                  "response_time": "> 2s",
+                  "availability": "< 99%"
+                }
+              }]
+            }'
+
+      - name: Send deployment notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "ARTIFACTOR v3.0 deployed successfully to production!"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

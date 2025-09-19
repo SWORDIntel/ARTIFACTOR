@@ -1,0 +1,459 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: artifactor
+data:
+  postgres-backup.sh: |
+    #!/bin/bash
+    set -e
+
+    # Environment variables
+    BACKUP_DIR="/backups/postgres"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="postgres_backup_${TIMESTAMP}.sql"
+    S3_BUCKET="${S3_BACKUP_BUCKET}"
+    RETENTION_DAYS=30
+
+    # Create backup directory
+    mkdir -p ${BACKUP_DIR}
+
+    echo "Starting PostgreSQL backup at $(date)"
+
+    # Create database backup
+    pg_dump -h postgres-primary-service -U ${POSTGRES_USER} -d ${POSTGRES_DB} \
+        --verbose --clean --create --format=custom \
+        --file=${BACKUP_DIR}/${BACKUP_FILE}
+
+    # Compress backup
+    gzip ${BACKUP_DIR}/${BACKUP_FILE}
+    BACKUP_FILE="${BACKUP_FILE}.gz"
+
+    # Upload to S3 if configured
+    if [ ! -z "$S3_BUCKET" ]; then
+        echo "Uploading backup to S3..."
+        aws s3 cp ${BACKUP_DIR}/${BACKUP_FILE} s3://${S3_BUCKET}/postgres/
+
+        # Verify upload
+        if aws s3 ls s3://${S3_BUCKET}/postgres/${BACKUP_FILE} > /dev/null 2>&1; then
+            echo "Backup successfully uploaded to S3"
+        else
+            echo "ERROR: Failed to upload backup to S3"
+            exit 1
+        fi
+    fi
+
+    # Create backup metadata
+    cat > ${BACKUP_DIR}/${BACKUP_FILE}.metadata << EOF
+    {
+        "timestamp": "${TIMESTAMP}",
+        "database": "${POSTGRES_DB}",
+        "size": "$(stat -c%s ${BACKUP_DIR}/${BACKUP_FILE})",
+        "checksum": "$(sha256sum ${BACKUP_DIR}/${BACKUP_FILE} | cut -d' ' -f1)",
+        "s3_location": "s3://${S3_BUCKET}/postgres/${BACKUP_FILE}"
+    }
+    EOF
+
+    # Cleanup old local backups
+    find ${BACKUP_DIR} -name "postgres_backup_*.sql.gz" -mtime +${RETENTION_DAYS} -delete
+
+    echo "PostgreSQL backup completed successfully at $(date)"
+
+  redis-backup.sh: |
+    #!/bin/bash
+    set -e
+
+    BACKUP_DIR="/backups/redis"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="redis_backup_${TIMESTAMP}.rdb"
+    S3_BUCKET="${S3_BACKUP_BUCKET}"
+
+    mkdir -p ${BACKUP_DIR}
+
+    echo "Starting Redis backup at $(date)"
+
+    # Create Redis backup using BGSAVE
+    redis-cli -h redis-service -a ${REDIS_PASSWORD} BGSAVE
+
+    # Wait for backup to complete
+    while [ "$(redis-cli -h redis-service -a ${REDIS_PASSWORD} LASTSAVE)" -eq "$(redis-cli -h redis-service -a ${REDIS_PASSWORD} LASTSAVE)" ]; do
+        sleep 1
+    done
+
+    # Copy RDB file
+    kubectl cp redis-0:/data/dump.rdb ${BACKUP_DIR}/${BACKUP_FILE}
+
+    # Compress backup
+    gzip ${BACKUP_DIR}/${BACKUP_FILE}
+    BACKUP_FILE="${BACKUP_FILE}.gz"
+
+    # Upload to S3 if configured
+    if [ ! -z "$S3_BUCKET" ]; then
+        aws s3 cp ${BACKUP_DIR}/${BACKUP_FILE} s3://${S3_BUCKET}/redis/
+    fi
+
+    echo "Redis backup completed successfully at $(date)"
+
+  models-backup.sh: |
+    #!/bin/bash
+    set -e
+
+    BACKUP_DIR="/backups/models"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="models_backup_${TIMESTAMP}.tar.gz"
+    S3_BUCKET="${S3_BACKUP_BUCKET}"
+    MODELS_DIR="/app/models"
+
+    mkdir -p ${BACKUP_DIR}
+
+    echo "Starting ML models backup at $(date)"
+
+    # Create tar archive of models directory
+    tar -czf ${BACKUP_DIR}/${BACKUP_FILE} -C ${MODELS_DIR} .
+
+    # Upload to S3 if configured
+    if [ ! -z "$S3_BUCKET" ]; then
+        aws s3 cp ${BACKUP_DIR}/${BACKUP_FILE} s3://${S3_BUCKET}/models/
+    fi
+
+    echo "ML models backup completed successfully at $(date)"
+
+  full-restore.sh: |
+    #!/bin/bash
+    set -e
+
+    RESTORE_DATE="${1:-latest}"
+    S3_BUCKET="${S3_BACKUP_BUCKET}"
+    RESTORE_DIR="/restore"
+
+    echo "Starting full system restore for date: ${RESTORE_DATE}"
+
+    mkdir -p ${RESTORE_DIR}
+
+    # Download backups from S3
+    if [ "$RESTORE_DATE" = "latest" ]; then
+        POSTGRES_BACKUP=$(aws s3 ls s3://${S3_BUCKET}/postgres/ | sort | tail -n 1 | awk '{print $4}')
+        REDIS_BACKUP=$(aws s3 ls s3://${S3_BUCKET}/redis/ | sort | tail -n 1 | awk '{print $4}')
+        MODELS_BACKUP=$(aws s3 ls s3://${S3_BUCKET}/models/ | sort | tail -n 1 | awk '{print $4}')
+    else
+        POSTGRES_BACKUP="postgres_backup_${RESTORE_DATE}.sql.gz"
+        REDIS_BACKUP="redis_backup_${RESTORE_DATE}.rdb.gz"
+        MODELS_BACKUP="models_backup_${RESTORE_DATE}.tar.gz"
+    fi
+
+    # Download PostgreSQL backup
+    aws s3 cp s3://${S3_BUCKET}/postgres/${POSTGRES_BACKUP} ${RESTORE_DIR}/
+    gunzip ${RESTORE_DIR}/${POSTGRES_BACKUP}
+
+    # Restore PostgreSQL
+    echo "Restoring PostgreSQL database..."
+    pg_restore -h postgres-primary-service -U ${POSTGRES_USER} -d ${POSTGRES_DB} \
+        --verbose --clean --create ${RESTORE_DIR}/${POSTGRES_BACKUP%.gz}
+
+    # Download and restore Redis
+    aws s3 cp s3://${S3_BUCKET}/redis/${REDIS_BACKUP} ${RESTORE_DIR}/
+    gunzip ${RESTORE_DIR}/${REDIS_BACKUP}
+
+    # Stop Redis temporarily
+    kubectl scale deployment redis --replicas=0
+    sleep 10
+
+    # Copy RDB file to Redis pods
+    kubectl cp ${RESTORE_DIR}/${REDIS_BACKUP%.gz} redis-0:/data/dump.rdb
+
+    # Restart Redis
+    kubectl scale deployment redis --replicas=3
+
+    # Download and restore models
+    aws s3 cp s3://${S3_BUCKET}/models/${MODELS_BACKUP} ${RESTORE_DIR}/
+    tar -xzf ${RESTORE_DIR}/${MODELS_BACKUP} -C /app/models/
+
+    echo "Full system restore completed successfully"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: artifactor
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:15
+            env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: artifactor-config
+                  key: POSTGRES_DB
+            - name: S3_BACKUP_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: S3_BACKUP_BUCKET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+            command:
+            - /bin/bash
+            - /scripts/postgres-backup.sh
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup
+  namespace: artifactor
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: redis-backup
+            image: redis:7-alpine
+            env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: REDIS_PASSWORD
+            - name: S3_BACKUP_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: S3_BACKUP_BUCKET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+            command:
+            - /bin/bash
+            - /scripts/redis-backup.sh
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: models-backup
+  namespace: artifactor
+spec:
+  schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: models-backup
+            image: alpine:latest
+            env:
+            - name: S3_BACKUP_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: S3_BACKUP_BUCKET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifactor-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+            - name: models-volume
+              mountPath: /app/models
+              readOnly: true
+            command:
+            - /bin/bash
+            - /scripts/models-backup.sh
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          - name: models-volume
+            persistentVolumeClaim:
+              claimName: models-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-management
+  namespace: artifactor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backup-management
+  template:
+    metadata:
+      labels:
+        app: backup-management
+    spec:
+      containers:
+      - name: backup-manager
+        image: postgres:15
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: artifactor-config
+              key: POSTGRES_DB
+        - name: S3_BACKUP_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: S3_BACKUP_BUCKET
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: artifactor-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        volumeMounts:
+        - name: backup-scripts
+          mountPath: /scripts
+        - name: backup-storage
+          mountPath: /backups
+        - name: models-volume
+          mountPath: /app/models
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Backup management service started"
+          while true; do
+            # Health check for backup system
+            echo "$(date): Backup system health check"
+
+            # Check S3 connectivity
+            if aws s3 ls s3://${S3_BACKUP_BUCKET}/ > /dev/null 2>&1; then
+              echo "S3 connectivity: OK"
+            else
+              echo "S3 connectivity: FAILED"
+            fi
+
+            # Check PostgreSQL connectivity
+            if pg_isready -h postgres-primary-service -U ${POSTGRES_USER} > /dev/null 2>&1; then
+              echo "PostgreSQL connectivity: OK"
+            else
+              echo "PostgreSQL connectivity: FAILED"
+            fi
+
+            # Check Redis connectivity
+            if redis-cli -h redis-service ping > /dev/null 2>&1; then
+              echo "Redis connectivity: OK"
+            else
+              echo "Redis connectivity: FAILED"
+            fi
+
+            sleep 3600  # Check every hour
+          done
+      volumes:
+      - name: backup-scripts
+        configMap:
+          name: backup-scripts
+          defaultMode: 0755
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: backup-pvc
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: models-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backup-management-service
+  namespace: artifactor
+spec:
+  selector:
+    app: backup-management
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

@@ -1,0 +1,554 @@
+2025-09-19 06:35:06,407 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:06,407 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:06,419 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:06,453 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:06,454 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260106: debugger.validate_input
+2025-09-19 06:35:06,454 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:06,554 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260106: python_internal.prepare_environment
+2025-09-19 06:35:06,554 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:06,654 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260106: pygui.show_progress
+2025-09-19 06:35:06,754 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:06,754 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260106: python_internal.execute_download
+2025-09-19 06:35:06,755 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:06,755 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:35:07,755 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260106: debugger.validate_output
+2025-09-19 06:35:07,755 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:07,757 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260107: debugger.validate_input
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260107: debugger.validate_input
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,758 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:07,858 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260107: python_internal.prepare_environment
+2025-09-19 06:35:07,858 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260107: python_internal.prepare_environment
+2025-09-19 06:35:07,858 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:07,858 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:07,958 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260107: pygui.show_progress
+2025-09-19 06:35:07,958 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260107: pygui.show_progress
+2025-09-19 06:35:08,058 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260108: python_internal.execute_download
+2025-09-19 06:35:08,058 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260108: python_internal.execute_download
+2025-09-19 06:35:08,058 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:35:08,058 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:35:09,059 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260109: debugger.validate_output
+2025-09-19 06:35:09,059 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260109: debugger.validate_output
+2025-09-19 06:35:09,059 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:35:09,059 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:35:09,159 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:35:09,159 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:09,159 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:09,216 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:09,217 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:09,226 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:09,258 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:09,258 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260109: debugger.validate_input
+2025-09-19 06:35:09,258 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:09,358 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260109: python_internal.prepare_environment
+2025-09-19 06:35:09,359 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:09,459 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260109: pygui.show_progress
+2025-09-19 06:35:09,559 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:09,559 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260109: python_internal.execute_download
+2025-09-19 06:35:09,559 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:09,559 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:35:10,559 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260109: debugger.validate_output
+2025-09-19 06:35:10,559 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:35:10,562 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:10,562 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:35:10,563 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:10,563 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260110: debugger.validate_input
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260110: debugger.validate_input
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,564 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:35:10,664 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260110: python_internal.prepare_environment
+2025-09-19 06:35:10,664 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260110: python_internal.prepare_environment
+2025-09-19 06:35:10,664 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:10,664 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:35:10,764 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260110: pygui.show_progress
+2025-09-19 06:35:10,764 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260110: pygui.show_progress
+2025-09-19 06:35:10,864 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:10,864 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260110: python_internal.execute_download
+2025-09-19 06:35:10,864 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:35:10,864 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260110: python_internal.execute_download
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:35:10,865 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:35:11,865 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260110: debugger.validate_output
+2025-09-19 06:35:11,865 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260110: debugger.validate_output
+2025-09-19 06:35:11,865 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:35:11,865 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:37:15,663 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:37:15,663 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:37:15,665 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:37:15,705 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:37:15,705 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260235: debugger.validate_input
+2025-09-19 06:37:15,705 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:37:15,805 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260235: python_internal.prepare_environment
+2025-09-19 06:37:15,806 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:37:15,906 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260235: pygui.show_progress
+2025-09-19 06:37:16,006 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260236: python_internal.execute_download
+2025-09-19 06:37:16,006 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:37:17,007 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260237: debugger.validate_output
+2025-09-19 06:37:17,007 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:37:17,107 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:37:17,107 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:49:54,832 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:49:54,833 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:49:54,845 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:49:54,879 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:49:54,879 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260994: debugger.validate_input
+2025-09-19 06:49:54,879 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:54,979 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260994: python_internal.prepare_environment
+2025-09-19 06:49:54,979 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:49:55,079 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260995: pygui.show_progress
+2025-09-19 06:49:55,179 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260995: python_internal.execute_download
+2025-09-19 06:49:55,180 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:49:56,180 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260996: debugger.validate_output
+2025-09-19 06:49:56,180 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:49:56,280 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:49:56,280 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:49:56,281 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:49:56,283 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:49:56,283 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260996: debugger.validate_input
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260996: debugger.validate_input
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,284 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:49:56,384 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260996: python_internal.prepare_environment
+2025-09-19 06:49:56,384 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260996: python_internal.prepare_environment
+2025-09-19 06:49:56,384 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:49:56,384 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:49:56,484 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260996: pygui.show_progress
+2025-09-19 06:49:56,484 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758260996: pygui.show_progress
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260996: python_internal.execute_download
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758260996: python_internal.execute_download
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:49:56,585 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:49:57,585 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260996: debugger.validate_output
+2025-09-19 06:49:57,585 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758260996: debugger.validate_output
+2025-09-19 06:49:57,585 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:49:57,585 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:50:02,352 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:50:02,352 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:50:02,363 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:50:02,397 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:50:02,397 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261002: debugger.validate_input
+2025-09-19 06:50:02,397 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:02,497 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261002: python_internal.prepare_environment
+2025-09-19 06:50:02,497 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:50:02,597 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261002: pygui.show_progress
+2025-09-19 06:50:02,697 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:50:02,697 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261002: python_internal.execute_download
+2025-09-19 06:50:02,698 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:50:02,698 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:50:03,698 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261002: debugger.validate_output
+2025-09-19 06:50:03,699 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,702 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261003: debugger.validate_input
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261003: debugger.validate_input
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,703 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:50:03,803 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261003: python_internal.prepare_environment
+2025-09-19 06:50:03,803 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261003: python_internal.prepare_environment
+2025-09-19 06:50:03,803 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:50:03,803 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:50:03,903 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261003: pygui.show_progress
+2025-09-19 06:50:03,903 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261003: pygui.show_progress
+2025-09-19 06:50:04,003 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261004: python_internal.execute_download
+2025-09-19 06:50:04,003 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261004: python_internal.execute_download
+2025-09-19 06:50:04,003 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:50:04,003 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:50:05,004 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261005: debugger.validate_output
+2025-09-19 06:50:05,004 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261005: debugger.validate_output
+2025-09-19 06:50:05,004 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:50:05,004 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:50:05,104 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:50:05,104 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:50:05,104 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:52:35,029 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:52:35,029 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:52:35,042 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:52:35,080 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:52:35,080 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261155: debugger.validate_input
+2025-09-19 06:52:35,080 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:35,180 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261155: python_internal.prepare_environment
+2025-09-19 06:52:35,180 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:52:35,280 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261155: pygui.show_progress
+2025-09-19 06:52:35,381 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:52:35,381 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261155: python_internal.execute_download
+2025-09-19 06:52:35,381 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:52:35,381 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:52:36,381 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261155: debugger.validate_output
+2025-09-19 06:52:36,381 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:52:36,383 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:52:36,383 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261156: debugger.validate_input
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261156: debugger.validate_input
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,384 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:52:36,485 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261156: python_internal.prepare_environment
+2025-09-19 06:52:36,485 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261156: python_internal.prepare_environment
+2025-09-19 06:52:36,485 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:52:36,485 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:52:36,585 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261156: pygui.show_progress
+2025-09-19 06:52:36,585 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261156: pygui.show_progress
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261156: python_internal.execute_download
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261156: python_internal.execute_download
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:52:36,685 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:52:37,685 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261156: debugger.validate_output
+2025-09-19 06:52:37,685 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261156: debugger.validate_output
+2025-09-19 06:52:37,685 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:52:37,685 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:56:06,733 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:56:06,734 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:56:06,745 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:56:06,782 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:56:06,782 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261366: debugger.validate_input
+2025-09-19 06:56:06,782 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:06,882 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261366: python_internal.prepare_environment
+2025-09-19 06:56:06,882 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:56:06,982 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261366: pygui.show_progress
+2025-09-19 06:56:07,082 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261367: python_internal.execute_download
+2025-09-19 06:56:07,083 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:56:08,083 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261368: debugger.validate_output
+2025-09-19 06:56:08,084 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:56:08,183 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 06:56:08,184 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:56:08,184 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:56:08,186 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261368: debugger.validate_input
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261368: debugger.validate_input
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,187 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:56:08,287 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261368: python_internal.prepare_environment
+2025-09-19 06:56:08,287 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261368: python_internal.prepare_environment
+2025-09-19 06:56:08,287 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:56:08,287 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:56:08,387 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261368: pygui.show_progress
+2025-09-19 06:56:08,387 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261368: pygui.show_progress
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261368: python_internal.execute_download
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261368: python_internal.execute_download
+2025-09-19 06:56:08,487 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:56:08,488 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:56:08,488 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:56:08,488 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:56:08,488 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:56:09,488 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261368: debugger.validate_output
+2025-09-19 06:56:09,488 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261368: debugger.validate_output
+2025-09-19 06:56:09,488 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:56:09,488 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:57:45,130 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:57:45,130 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:57:45,143 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:57:45,176 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:57:45,176 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261465: debugger.validate_input
+2025-09-19 06:57:45,176 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:45,276 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261465: python_internal.prepare_environment
+2025-09-19 06:57:45,277 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:57:45,377 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261465: pygui.show_progress
+2025-09-19 06:57:45,477 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:57:45,477 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:57:45,477 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261465: python_internal.execute_download
+2025-09-19 06:57:45,477 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 06:57:46,477 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261465: debugger.validate_output
+2025-09-19 06:57:46,478 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 06:57:46,480 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:57:46,480 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 06:57:46,480 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:57:46,480 | INFO | agent_coordinator | Performing system health check
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261466: debugger.validate_input
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261466: debugger.validate_input
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,481 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 06:57:46,581 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261466: python_internal.prepare_environment
+2025-09-19 06:57:46,581 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261466: python_internal.prepare_environment
+2025-09-19 06:57:46,582 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:57:46,582 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 06:57:46,682 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261466: pygui.show_progress
+2025-09-19 06:57:46,682 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758261466: pygui.show_progress
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261466: python_internal.execute_download
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758261466: python_internal.execute_download
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:57:46,782 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 06:57:47,782 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261466: debugger.validate_output
+2025-09-19 06:57:47,782 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758261466: debugger.validate_output
+2025-09-19 06:57:47,782 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 06:57:47,782 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:14:09,785 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:14:09,785 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:14:09,797 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:14:09,830 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:14:09,831 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266049: debugger.validate_input
+2025-09-19 08:14:09,831 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:09,931 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266049: python_internal.prepare_environment
+2025-09-19 08:14:09,931 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:14:10,031 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266050: pygui.show_progress
+2025-09-19 08:14:10,131 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266050: python_internal.execute_download
+2025-09-19 08:14:10,131 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 08:14:11,132 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266051: debugger.validate_output
+2025-09-19 08:14:11,132 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 08:14:11,232 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 08:14:11,232 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:14:11,232 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:14:11,234 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:14:11,234 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:14:11,235 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:14:11,236 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266051: debugger.validate_input
+2025-09-19 08:14:11,236 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266051: debugger.validate_input
+2025-09-19 08:14:11,236 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,236 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:14:11,336 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266051: python_internal.prepare_environment
+2025-09-19 08:14:11,336 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266051: python_internal.prepare_environment
+2025-09-19 08:14:11,336 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:14:11,336 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:14:11,436 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266051: pygui.show_progress
+2025-09-19 08:14:11,436 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266051: pygui.show_progress
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266051: python_internal.execute_download
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266051: python_internal.execute_download
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:14:11,536 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:14:12,536 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266051: debugger.validate_output
+2025-09-19 08:14:12,536 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266051: debugger.validate_output
+2025-09-19 08:14:12,537 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:14:12,537 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:17:14,441 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:14,441 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:14,452 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:14,485 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:14,486 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266234: debugger.validate_input
+2025-09-19 08:17:14,486 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:14,586 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266234: python_internal.prepare_environment
+2025-09-19 08:17:14,586 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:14,686 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266234: pygui.show_progress
+2025-09-19 08:17:14,786 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:14,786 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266234: python_internal.execute_download
+2025-09-19 08:17:14,786 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:14,786 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 08:17:15,786 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266234: debugger.validate_output
+2025-09-19 08:17:15,786 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266235: debugger.validate_input
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266235: debugger.validate_input
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,789 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:15,890 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266235: python_internal.prepare_environment
+2025-09-19 08:17:15,890 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266235: python_internal.prepare_environment
+2025-09-19 08:17:15,890 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:15,890 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:15,990 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266235: pygui.show_progress
+2025-09-19 08:17:15,990 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266235: pygui.show_progress
+2025-09-19 08:17:16,090 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266236: python_internal.execute_download
+2025-09-19 08:17:16,090 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266236: python_internal.execute_download
+2025-09-19 08:17:16,090 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:17:16,090 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:17:17,091 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266237: debugger.validate_output
+2025-09-19 08:17:17,091 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266237: debugger.validate_output
+2025-09-19 08:17:17,091 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:17:17,091 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:17:17,191 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 08:17:17,191 | ERROR | agent_coordinator | Required step failed: debugger.validate_output
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:17,191 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:26,797 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:26,798 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:26,815 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:26,850 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:26,851 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266246: debugger.validate_input
+2025-09-19 08:17:26,851 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:26,951 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266246: python_internal.prepare_environment
+2025-09-19 08:17:26,951 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:27,051 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266247: pygui.show_progress
+2025-09-19 08:17:27,151 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266247: python_internal.execute_download
+2025-09-19 08:17:27,151 | INFO | agent_coordinator | Simulating download from https://example.com/test.txt to /tmp/test_download.txt
+2025-09-19 08:17:28,152 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266248: debugger.validate_output
+2025-09-19 08:17:28,152 | INFO | agent_coordinator | Validating output files: ['/tmp/test_download.txt']
+2025-09-19 08:17:28,252 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:28,252 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Initialized agents: pygui, python_internal, debugger
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Performing system health check
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Checking Python dependencies
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Starting tandem operation: download_artifact
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266248: debugger.validate_input
+2025-09-19 08:17:28,254 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266248: debugger.validate_input
+2025-09-19 08:17:28,255 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,255 | INFO | agent_coordinator | Validating input parameters
+2025-09-19 08:17:28,355 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266248: python_internal.prepare_environment
+2025-09-19 08:17:28,355 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266248: python_internal.prepare_environment
+2025-09-19 08:17:28,355 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:28,355 | INFO | agent_coordinator | Preparing environment with requirements: ['requests', 'urllib3']
+2025-09-19 08:17:28,455 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266248: pygui.show_progress
+2025-09-19 08:17:28,455 | INFO | agent_coordinator | Executing task download_artifact_pygui_1758266248: pygui.show_progress
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Tandem operation download_artifact completed
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266248: python_internal.execute_download
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Executing task download_artifact_python_internal_1758266248: python_internal.execute_download
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Analyzing error: Connection timeout occurred during download
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Simulating download from https://httpbin.org/json to /tmp/coordination_test.json
+2025-09-19 08:17:28,555 | INFO | agent_coordinator | Shutting down agent coordinator
+2025-09-19 08:17:29,556 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266248: debugger.validate_output
+2025-09-19 08:17:29,556 | INFO | agent_coordinator | Executing task download_artifact_debugger_1758266248: debugger.validate_output
+2025-09-19 08:17:29,556 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
+2025-09-19 08:17:29,556 | INFO | agent_coordinator | Validating output files: ['/tmp/coordination_test.json']
