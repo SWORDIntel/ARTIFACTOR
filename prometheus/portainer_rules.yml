@@ -1,0 +1,158 @@
+# Prometheus Alerting Rules for Portainer
+# DOCKER-AGENT: Monitoring rules for Portainer container management
+
+groups:
+  - name: portainer.rules
+    interval: 30s
+    rules:
+      # Portainer Service Availability
+      - alert: PortainerDown
+        expr: up{job="portainer"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: portainer
+          component: container-management
+        annotations:
+          summary: "Portainer service is down"
+          description: "Portainer container management interface has been down for more than 1 minute"
+          runbook_url: "https://documentation.portainer.io/troubleshooting/"
+
+      - alert: PortainerHighMemoryUsage
+        expr: (container_memory_usage_bytes{name="etherscan-portainer"} / container_spec_memory_limit_bytes{name="etherscan-portainer"}) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: portainer
+          component: container-management
+        annotations:
+          summary: "Portainer high memory usage"
+          description: "Portainer container is using {{ $value }}% of allocated memory"
+
+      - alert: PortainerHighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{name="etherscan-portainer"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: portainer
+          component: container-management
+        annotations:
+          summary: "Portainer high CPU usage"
+          description: "Portainer container CPU usage is {{ $value }}%"
+
+      # Docker Socket Connectivity
+      - alert: PortainerDockerSocketError
+        expr: increase(portainer_docker_socket_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: portainer
+          component: docker-socket
+        annotations:
+          summary: "Portainer Docker socket errors"
+          description: "Portainer is experiencing Docker socket connectivity issues"
+
+      # Portainer Database Issues
+      - alert: PortainerDatabaseErrors
+        expr: increase(portainer_database_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: portainer
+          component: database
+        annotations:
+          summary: "Portainer database errors"
+          description: "Portainer is experiencing database errors"
+
+      # Authentication Failures
+      - alert: PortainerAuthenticationFailures
+        expr: increase(portainer_authentication_failures_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: portainer
+          component: authentication
+        annotations:
+          summary: "High Portainer authentication failures"
+          description: "{{ $value }} authentication failures in the last 5 minutes"
+
+      # Container Management Alerts
+      - alert: TooManyFailedContainers
+        expr: count(container_last_seen{name=~"etherscan-.*"} < (time() - 60)) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: etherscan-stack
+          component: containers
+        annotations:
+          summary: "Multiple containers in Etherscan stack are failing"
+          description: "{{ $value }} containers in the Etherscan stack are not responding"
+
+      # Volume Usage Alerts
+      - alert: PortainerVolumeSpaceUsage
+        expr: (docker_volume_size_bytes{volume="portainer_data"} / docker_volume_available_bytes{volume="portainer_data"}) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: portainer
+          component: storage
+        annotations:
+          summary: "Portainer volume space usage high"
+          description: "Portainer data volume is {{ $value }}% full"
+
+      # Network Connectivity
+      - alert: PortainerNetworkLatency
+        expr: histogram_quantile(0.95, rate(portainer_http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: portainer
+          component: network
+        annotations:
+          summary: "High Portainer response latency"
+          description: "95th percentile response time is {{ $value }}s"
+
+      # Stack Health Monitoring
+      - alert: EtherscanStackIncomplete
+        expr: count(up{job=~"etherscan-.*"}) < 8
+        for: 2m
+        labels:
+          severity: critical
+          service: etherscan-stack
+          component: availability
+        annotations:
+          summary: "Etherscan stack is incomplete"
+          description: "Only {{ $value }} out of 8 expected services are running in the Etherscan stack"
+
+  - name: portainer.recording.rules
+    interval: 30s
+    rules:
+      # Recording rules for Portainer metrics
+      - record: portainer:memory_usage_percentage
+        expr: (container_memory_usage_bytes{name="etherscan-portainer"} / container_spec_memory_limit_bytes{name="etherscan-portainer"}) * 100
+
+      - record: portainer:cpu_usage_percentage
+        expr: rate(container_cpu_usage_seconds_total{name="etherscan-portainer"}[5m]) * 100
+
+      - record: portainer:network_receive_bytes_rate
+        expr: rate(container_network_receive_bytes_total{name="etherscan-portainer"}[5m])
+
+      - record: portainer:network_transmit_bytes_rate
+        expr: rate(container_network_transmit_bytes_total{name="etherscan-portainer"}[5m])
+
+      - record: portainer:disk_usage_percentage
+        expr: (container_fs_usage_bytes{name="etherscan-portainer"} / container_fs_limit_bytes{name="etherscan-portainer"}) * 100
+
+      # Etherscan stack health score
+      - record: etherscan:stack_health_score
+        expr: (count(up{job=~"etherscan-.*"} == 1) / count(up{job=~"etherscan-.*"})) * 100
+
+      # API response metrics
+      - record: etherscan:api_success_rate
+        expr: (rate(etherscan_api_requests_total{status="success"}[5m]) / rate(etherscan_api_requests_total[5m])) * 100
+
+      - record: etherscan:api_latency_p95
+        expr: histogram_quantile(0.95, rate(etherscan_api_request_duration_seconds_bucket[5m]))
+
+      - record: etherscan:api_latency_p99
+        expr: histogram_quantile(0.99, rate(etherscan_api_request_duration_seconds_bucket[5m]))

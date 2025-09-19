@@ -1,0 +1,16 @@
+# Logstash Configuration for Etherscan API
+http.host: "0.0.0.0"
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Pipeline configuration
+pipeline.ordered: auto
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Logging
+log.level: info
+path.logs: /usr/share/logstash/logs
+
+# JVM settings
+xpack.management.enabled: false

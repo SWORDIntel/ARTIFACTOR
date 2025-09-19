@@ -1,0 +1,297 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Portainer Container Management Dashboard",
+    "tags": ["portainer", "docker", "containers"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Portainer Service Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"portainer\"}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Portainer Memory Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "portainer:memory_usage_percentage",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 85}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Portainer CPU Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "portainer:cpu_usage_percentage",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 85}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Etherscan Stack Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "etherscan:stack_health_score",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 80},
+                {"color": "green", "value": 95}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Container Status Overview",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "up{job=~\"etherscan-.*|portainer\"}",
+            "refId": "A",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true, "__name__": true},
+              "renameByName": {
+                "job": "Service",
+                "instance": "Instance",
+                "Value": "Status"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Status"},
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+                    {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Network Traffic",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "portainer:network_receive_bytes_rate",
+            "refId": "A",
+            "legendFormat": "RX"
+          },
+          {
+            "expr": "portainer:network_transmit_bytes_rate",
+            "refId": "B",
+            "legendFormat": "TX"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Etherscan API Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "etherscan:api_success_rate",
+            "refId": "A",
+            "legendFormat": "Success Rate %"
+          },
+          {
+            "expr": "etherscan:api_latency_p95 * 1000",
+            "refId": "B",
+            "legendFormat": "P95 Latency (ms)",
+            "yAxis": 2
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent"
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "P95 Latency (ms)"},
+              "properties": [
+                {"id": "unit", "value": "ms"}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 8,
+        "title": "Resource Utilization Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "portainer:memory_usage_percentage",
+            "refId": "A",
+            "legendFormat": "Memory %"
+          },
+          {
+            "expr": "portainer:cpu_usage_percentage",
+            "refId": "B",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "portainer:disk_usage_percentage",
+            "refId": "C",
+            "legendFormat": "Disk %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Recent Alerts",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS{alertname=~\"Portainer.*|EtherscanStack.*\"}",
+            "refId": "A",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 20},
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"__name__": true, "job": true, "instance": true},
+              "renameByName": {
+                "alertname": "Alert",
+                "alertstate": "State",
+                "severity": "Severity"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "State"},
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {"options": {"firing": {"text": "FIRING", "color": "red"}}, "type": "value"},
+                    {"options": {"pending": {"text": "PENDING", "color": "yellow"}}, "type": "value"}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": [
+      {
+        "title": "Portainer UI",
+        "url": "https://localhost:9443",
+        "type": "link"
+      },
+      {
+        "title": "Etherscan API",
+        "url": "http://localhost:8080",
+        "type": "link"
+      }
+    ]
+  }
+}

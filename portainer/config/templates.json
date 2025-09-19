@@ -1,0 +1,171 @@
+{
+  "version": "2",
+  "templates": [
+    {
+      "type": 3,
+      "title": "Etherscan API Stack",
+      "description": "Complete Etherscan API deployment with monitoring",
+      "note": "Deploys the full Etherscan API stack with Redis, Nginx, Prometheus, and Grafana",
+      "categories": ["API", "Blockchain", "Monitoring"],
+      "platform": "linux",
+      "logo": "https://etherscan.io/images/favicon3.ico",
+      "repository": {
+        "url": "https://github.com/portainer/templates",
+        "stackfile": "stacks/etherscan-api/docker-compose.yml"
+      },
+      "env": [
+        {
+          "name": "API_KEY",
+          "label": "Etherscan API Key",
+          "description": "Your Etherscan API key for accessing blockchain data"
+        },
+        {
+          "name": "GRAFANA_ADMIN_PASSWORD",
+          "label": "Grafana Admin Password",
+          "description": "Password for Grafana admin user",
+          "default": "admin123"
+        },
+        {
+          "name": "REDIS_MAX_MEMORY",
+          "label": "Redis Max Memory",
+          "description": "Maximum memory for Redis cache",
+          "default": "256mb"
+        }
+      ]
+    },
+    {
+      "type": 2,
+      "title": "Redis Cache",
+      "description": "Redis cache server for API rate limiting",
+      "note": "Standalone Redis server with persistence",
+      "categories": ["Cache", "Database"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/docker-library/docs/01c12653951b2fe592c1f93a13b4e289ada0e3a1/redis/logo.png",
+      "image": "redis:7-alpine",
+      "ports": [
+        "6379:6379/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/data",
+          "bind": "redis_data"
+        }
+      ],
+      "command": "redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru"
+    },
+    {
+      "type": 2,
+      "title": "Prometheus",
+      "description": "Prometheus monitoring server",
+      "note": "Metrics collection and monitoring",
+      "categories": ["Monitoring"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/prometheus/prometheus/main/web/ui/static/img/prometheus_logo_grey.svg",
+      "image": "prom/prometheus:latest",
+      "ports": [
+        "9090:9090/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/etc/prometheus/prometheus.yml",
+          "bind": "./prometheus/prometheus.yml",
+          "readonly": true
+        },
+        {
+          "container": "/prometheus",
+          "bind": "prometheus_data"
+        }
+      ],
+      "command": "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles --storage.tsdb.retention.time=30d --web.enable-lifecycle"
+    },
+    {
+      "type": 2,
+      "title": "Grafana",
+      "description": "Grafana dashboard server",
+      "note": "Visualization and dashboards for metrics",
+      "categories": ["Monitoring", "Visualization"],
+      "platform": "linux",
+      "logo": "https://grafana.com/static/img/menu/grafana2.svg",
+      "image": "grafana/grafana:latest",
+      "ports": [
+        "3000:3000/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/var/lib/grafana",
+          "bind": "grafana_data"
+        }
+      ],
+      "env": [
+        {
+          "name": "GF_SECURITY_ADMIN_PASSWORD",
+          "default": "admin123",
+          "description": "Grafana admin password"
+        },
+        {
+          "name": "GF_USERS_ALLOW_SIGN_UP",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "type": 2,
+      "title": "Nginx Reverse Proxy",
+      "description": "Nginx reverse proxy with SSL",
+      "note": "Load balancer and SSL termination",
+      "categories": ["Proxy", "Load Balancer"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/docker-library/docs/01c12653951b2fe592c1f93a13b4e289ada0e3a1/nginx/logo.png",
+      "image": "nginx:alpine",
+      "ports": [
+        "80:80/tcp",
+        "443:443/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/etc/nginx/nginx.conf",
+          "bind": "./nginx/nginx.conf",
+          "readonly": true
+        },
+        {
+          "container": "/etc/nginx/ssl",
+          "bind": "./nginx/ssl",
+          "readonly": true
+        }
+      ]
+    },
+    {
+      "type": 2,
+      "title": "Elasticsearch",
+      "description": "Elasticsearch for log storage",
+      "note": "Search and analytics engine for logs",
+      "categories": ["Logging", "Search"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/elastic/elasticsearch/main/docs/reference/images/logo.png",
+      "image": "docker.elastic.co/elasticsearch/elasticsearch:8.8.0",
+      "ports": [
+        "9200:9200/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/usr/share/elasticsearch/data",
+          "bind": "elasticsearch_data"
+        }
+      ],
+      "env": [
+        {
+          "name": "discovery.type",
+          "default": "single-node"
+        },
+        {
+          "name": "ES_JAVA_OPTS",
+          "default": "-Xms512m -Xmx512m"
+        },
+        {
+          "name": "xpack.security.enabled",
+          "default": "false"
+        }
+      ]
+    }
+  ]
+}

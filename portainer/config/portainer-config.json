@@ -1,0 +1,70 @@
+{
+  "version": "1.0",
+  "description": "Portainer CE Configuration for Etherscan API Management",
+  "settings": {
+    "logo_url": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/logo_alt.png",
+    "theme": "dark",
+    "authentication": {
+      "method": "internal",
+      "ldap_enabled": false,
+      "oauth_enabled": false,
+      "session_timeout": "8h"
+    },
+    "security": {
+      "ssl_enabled": true,
+      "force_https": true,
+      "disable_bind_mounts": false,
+      "disable_privileged_mode": false,
+      "enable_host_management": true
+    },
+    "features": {
+      "external_endpoints": true,
+      "edge_compute": false,
+      "analytics": false,
+      "update_notifications": true
+    },
+    "limits": {
+      "max_containers_per_stack": 100,
+      "max_environments": 10,
+      "max_users": 50
+    },
+    "monitoring": {
+      "enable_metrics": true,
+      "metrics_endpoint": "/metrics",
+      "prometheus_integration": true
+    }
+  },
+  "environment_groups": [
+    {
+      "name": "Etherscan Production",
+      "description": "Production environment for Etherscan API",
+      "tags": ["production", "api", "etherscan"]
+    },
+    {
+      "name": "Monitoring",
+      "description": "Monitoring and observability stack",
+      "tags": ["monitoring", "prometheus", "grafana"]
+    },
+    {
+      "name": "Development",
+      "description": "Development and testing environment",
+      "tags": ["development", "testing"]
+    }
+  ],
+  "custom_templates": [
+    {
+      "id": "etherscan-api",
+      "title": "Etherscan API Stack",
+      "description": "Complete Etherscan API with Redis caching",
+      "categories": ["API", "Blockchain"],
+      "logo": "https://etherscan.io/images/favicon3.ico",
+      "env": [
+        {
+          "name": "API_KEY",
+          "label": "Etherscan API Key",
+          "description": "Your Etherscan API key"
+        }
+      ]
+    }
+  ]
+}
