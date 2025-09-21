@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f0f23" />
+    <meta name="description" content="ARTIFACTOR v3.0 - Enterprise Claude.ai artifact management platform with real-time collaboration, ML classification, and beautiful dark theme" />
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- Manifest for PWA -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="ARTIFACTOR - Enterprise Artifact Management" />
+    <meta property="og:description" content="Manage Claude.ai artifacts with real-time collaboration, ML classification, and semantic search" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://artifactor.app" />
+    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ARTIFACTOR - Enterprise Artifact Management" />
+    <meta name="twitter:description" content="Beautiful dark theme artifact management platform" />
+    <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
+
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#0f0f23" />
+    <meta name="msapplication-TileImage" content="%PUBLIC_URL%/logo192.png" />
+
+    <!-- Preconnect to optimize font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Dark theme body styles to prevent flash -->
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        color: #e2e8f0;
+        min-height: 100vh;
+      }
+
+      code {
+        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+          monospace;
+      }
+
+      /* Loading screen styles */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 9999;
+      }
+
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #c084fc 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .loading-logo span {
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .loading-text {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      .loading-subtitle {
+        color: #cbd5e1;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5);
+        }
+      }
+
+      /* Hide loading screen when app loads */
+      .app-loaded .loading-screen {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease-out;
+      }
+    </style>
+
+    <title>ARTIFACTOR - Enterprise Artifact Management</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run ARTIFACTOR.</noscript>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+      <div class="loading-logo">
+        <span>A</span>
+      </div>
+      <div class="loading-text">ARTIFACTOR</div>
+      <div class="loading-subtitle">Loading enterprise platform...</div>
+    </div>
+
+    <!-- React App Root -->
+    <div id="root"></div>
+
+    <!-- Service Worker Registration -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('%PUBLIC_URL%/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // Hide loading screen when app loads
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.body.classList.add('app-loaded');
+        }, 1000);
+      });
+
+      // Install prompt for PWA
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log('PWA install prompt available');
+      });
+
+      // Show install button when PWA is installable
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA was installed');
+        deferredPrompt = null;
+      });
+    </script>
+  </body>
+</html>
