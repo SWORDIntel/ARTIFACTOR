@@ -1,0 +1,64 @@
+# ARTIFACTOR Docker Compose Configuration
+# Simple deployment for Claude.ai artifact downloader
+
+services:
+  artifactor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: artifactor:latest
+    container_name: artifactor
+    # Remove the container after it stops
+    command: ["--help"]
+    volumes:
+      # Mount downloads directory to host
+      - ./downloads:/app/downloads
+      # X11 socket for clipboard access (Linux)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      # X11 forwarding for clipboard
+      - DISPLAY=${DISPLAY:-:0}
+      # Home directory
+      - HOME=/home/artifactor
+    # Network mode for clipboard access
+    network_mode: host
+    # Capabilities for clipboard access
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    # Interactive mode support
+    stdin_open: true
+    tty: true
+    # Restart policy
+    restart: "no"
+    # Health check
+    healthcheck:
+      test: ["CMD", "/app/docker-entrypoint.sh", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Web interface service (future enhancement)
+  # Commented out for now - keeping it simple
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.web
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./downloads:/app/downloads:ro
+  #   depends_on:
+  #     - artifactor
+
+# Named volumes (if needed for persistence)
+volumes:
+  downloads:
+    driver: local
+
+# Networks (if needed for isolation)
+networks:
+  default:
+    driver: bridge

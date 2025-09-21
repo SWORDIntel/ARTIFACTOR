@@ -1,0 +1,119 @@
+{
+  "version": "1.0",
+  "root_path": "/home/john/ARTIFACTOR/docu",
+  "structure": {
+    "total_files": 13,
+    "categories": {
+      "architecture": {
+        "path": "/home/john/ARTIFACTOR/docu/architecture",
+        "description": "System architecture and design documents (2 files)",
+        "file_count": 2,
+        "files": [
+          "ARTIFACTOR_V3_TECHNICAL_ARCHITECTURE.md",
+          "ML_SYSTEM_DOCUMENTATION.md"
+        ],
+        "patterns": [
+          "technical"
+        ],
+        "subdirs": []
+      },
+      "deployment": {
+        "path": "/home/john/ARTIFACTOR/docu/deployment",
+        "description": "Deployment guides and procedures (4 files)",
+        "file_count": 4,
+        "files": [
+          "PRODUCTION_DEPLOYMENT_CHECKLIST.md",
+          "PRODUCTION_DEPLOYMENT_SUMMARY.md",
+          "INFRASTRUCTURE_DEPLOYMENT_GUIDE.md",
+          "COLLABORATION_IMPLEMENTATION.md"
+        ],
+        "patterns": [],
+        "subdirs": []
+      },
+      "performance": {
+        "path": "/home/john/ARTIFACTOR/docu/performance",
+        "description": "Performance optimization documentation (3 files)",
+        "file_count": 3,
+        "files": [
+          "OPTIMIZER_PERFORMANCE_ANALYSIS.md",
+          "OPTIMIZATION_RESULTS_SUMMARY.md",
+          "MONITOR_BASELINE_REPORT.md"
+        ],
+        "patterns": [],
+        "subdirs": []
+      },
+      "guides": {
+        "path": "/home/john/ARTIFACTOR/docu/guides",
+        "description": "User guides and tutorials (1 files)",
+        "file_count": 1,
+        "files": [
+          "README_V3.md"
+        ],
+        "patterns": [
+          "readme"
+        ],
+        "subdirs": []
+      },
+      "reports": {
+        "path": "/home/john/ARTIFACTOR/docu/reports",
+        "description": "Reports (1 files)",
+        "file_count": 1,
+        "files": [
+          "DEBUGGER_COMPREHENSIVE_ANALYSIS.md"
+        ],
+        "patterns": [],
+        "subdirs": []
+      },
+      "_root": {
+        "path": "/home/john/ARTIFACTOR/docu",
+        "description": "Root documentation files",
+        "file_count": 2,
+        "files": [
+          "README.md",
+          "CLAUDE.md"
+        ],
+        "patterns": [
+          "readme"
+        ]
+      }
+    },
+    "file_types": {
+      ".md": 13
+    },
+    "depth": 2,
+    "patterns": [
+      "readme",
+      "technical"
+    ]
+  },
+  "role_mappings": {
+    "New Users": [
+      "deployment/INFRASTRUCTURE_DEPLOYMENT_GUIDE.md",
+      "guides/README_V3.md",
+      "README.md"
+    ],
+    "Developers": [
+      "architecture/ARTIFACTOR_V3_TECHNICAL_ARCHITECTURE.md",
+      "architecture/ML_SYSTEM_DOCUMENTATION.md",
+      "deployment/COLLABORATION_IMPLEMENTATION.md"
+    ],
+    "Administrators": [
+      "deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md",
+      "deployment/PRODUCTION_DEPLOYMENT_SUMMARY.md",
+      "deployment/INFRASTRUCTURE_DEPLOYMENT_GUIDE.md",
+      "deployment/COLLABORATION_IMPLEMENTATION.md"
+    ],
+    "Project Managers": [
+      "deployment/PRODUCTION_DEPLOYMENT_SUMMARY.md",
+      "performance/OPTIMIZATION_RESULTS_SUMMARY.md",
+      "reports/DEBUGGER_COMPREHENSIVE_ANALYSIS.md"
+    ],
+    "QA/Testing": [
+      "performance/OPTIMIZER_PERFORMANCE_ANALYSIS.md",
+      "performance/OPTIMIZATION_RESULTS_SUMMARY.md",
+      "performance/MONITOR_BASELINE_REPORT.md"
+    ]
+  },
+  "generated_at": "/home/john/ARTIFACTOR/docu",
+  "analyzed_at": 1758405721.8041465
+}

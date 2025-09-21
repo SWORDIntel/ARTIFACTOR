@@ -1,0 +1,77 @@
+# ARTIFACTOR Docker Ignore
+# Exclude unnecessary files from Docker build context
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docu/
+docs/
+
+# Downloads directory (will be mounted as volume)
+downloads/
+*.downloads
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Docker files (except Dockerfile and docker-compose.yml)
+.dockerignore
+docker-compose.override.yml
+
+# Environment files
+.env
+.env.local
+.env.production

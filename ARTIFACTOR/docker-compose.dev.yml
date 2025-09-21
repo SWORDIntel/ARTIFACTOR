@@ -1,0 +1,248 @@
+# ARTIFACTOR v3.0 Development Environment
+# Optimized for local development with hot reloading and debugging
+
+version: '3.8'
+
+services:
+  # =====================================
+  # DATABASE SERVICES
+  # =====================================
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: artifactor-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: artifactor
+      POSTGRES_USER: artifactor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-artifactor123}
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - artifactor-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artifactor -d artifactor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: artifactor-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - artifactor-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # =====================================
+  # BACKEND SERVICES
+  # =====================================
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: development
+    image: artifactor-backend:dev
+    container_name: artifactor-backend-dev
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD:-artifactor123}@postgres:5432/artifactor
+      REDIS_URL: redis://redis:6379/0
+
+      # Development settings
+      ENVIRONMENT: development
+      DEBUG: true
+      LOG_LEVEL: debug
+
+      # Security (use weak settings for development)
+      SECRET_KEY: dev-secret-key-not-for-production
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+
+      # Features
+      ENABLE_ML_CLASSIFICATION: false  # Disabled for faster startup
+      ENABLE_SEMANTIC_SEARCH: false
+      ENABLE_METRICS: true
+      LEGACY_DOWNLOADER_ENABLED: true
+
+      # CORS - Allow all origins in development
+      BACKEND_CORS_ORIGINS: '["*"]'
+
+      # Performance (reduced for development)
+      WORKERS: 1
+      MAX_WORKERS: 2
+    volumes:
+      - ./backend/app:/app/app:ro
+      - ./simple-claude-downloader.py:/app/legacy/simple-claude-downloader.py:ro
+      - ./downloads:/app/downloads
+      - ./uploads:/app/uploads
+      - dev_logs:/app/logs
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+      - "${METRICS_PORT:-9090}:9090"
+    networks:
+      - artifactor-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--log-level", "debug"]
+
+  # =====================================
+  # FRONTEND SERVICES
+  # =====================================
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+        REACT_APP_WS_URL: ws://localhost:8000
+        REACT_APP_ENVIRONMENT: development
+    image: artifactor-frontend:dev
+    container_name: artifactor-frontend-dev
+    restart: unless-stopped
+    environment:
+      - FAST_REFRESH=true
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/package.json:/app/package.json:ro
+      - ./frontend/tsconfig.json:/app/tsconfig.json:ro
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - artifactor-dev-network
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+  # =====================================
+  # DEVELOPMENT TOOLS
+  # =====================================
+
+  # Database admin interface
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: artifactor-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@artifactor.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_dev_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - artifactor-dev-network
+    depends_on:
+      - postgres
+
+  # Redis admin interface
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: artifactor-redis-commander-dev
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - artifactor-dev-network
+    depends_on:
+      - redis
+
+  # =====================================
+  # MONITORING (OPTIONAL FOR DEV)
+  # =====================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: artifactor-prometheus-dev
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus-dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - artifactor-dev-network
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: artifactor-grafana-dev
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_USERS_ALLOW_SIGN_UP: true
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    networks:
+      - artifactor-dev-network
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+# =====================================
+# NETWORKS
+# =====================================
+
+networks:
+  artifactor-dev-network:
+    driver: bridge
+
+# =====================================
+# VOLUMES
+# =====================================
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  pgadmin_dev_data:
+    driver: local
+  prometheus_dev_data:
+    driver: local
+  grafana_dev_data:
+    driver: local
+  frontend_node_modules:
+    driver: local
+  dev_logs:
+    driver: local

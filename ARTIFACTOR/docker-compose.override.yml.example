@@ -1,0 +1,60 @@
+# ARTIFACTOR Docker Compose Override Example
+# Copy this file to docker-compose.override.yml and customize as needed
+
+version: '3.8'
+
+services:
+  artifactor:
+    # Custom environment variables
+    environment:
+      # Custom output directory inside container
+      - OUTPUT_DIR=/app/downloads
+      # Enable debug mode
+      - DEBUG=true
+      # Custom timeout for downloads
+      - DOWNLOAD_TIMEOUT=60
+
+    # Alternative volume mounting options
+    volumes:
+      # Use absolute path instead of relative
+      # - /home/user/artifacts:/app/downloads
+
+      # Mount specific clipboard files (alternative to X11)
+      # - /dev/clipboard:/dev/clipboard:rw
+
+    # Port mapping if adding web interface later
+    # ports:
+    #   - "3000:3000"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # User override (if needed)
+    # user: "1000:1000"
+
+# Development services
+# Uncomment for development mode
+# services:
+#   artifactor-dev:
+#     extends:
+#       service: artifactor
+#     volumes:
+#       # Mount source code for development
+#       - .:/app
+#     command: ["--interactive"]
+#     environment:
+#       - DEBUG=true

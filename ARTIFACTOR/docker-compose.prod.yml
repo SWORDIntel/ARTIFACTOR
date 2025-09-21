@@ -1,0 +1,568 @@
+# ARTIFACTOR v3.0 Production Environment
+# Optimized for production deployment with full monitoring and security
+
+version: '3.8'
+
+services:
+  # =====================================
+  # DATABASE SERVICES (PRODUCTION)
+  # =====================================
+
+  postgres-primary:
+    image: postgres:15-alpine
+    container_name: artifactor-postgres-primary
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: artifactor
+      POSTGRES_USER: artifactor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD}
+    volumes:
+      - postgres_primary_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/backups:/backups
+      - ./database/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - artifactor-prod-network
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c max_connections=200
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=32MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=8MB
+      -c min_wal_size=2GB
+      -c max_wal_size=8GB
+      -c max_worker_processes=16
+      -c max_parallel_workers_per_gather=8
+      -c max_parallel_workers=16
+      -c max_parallel_maintenance_workers=8
+      -c wal_level=replica
+      -c max_wal_senders=3
+      -c max_replication_slots=3
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artifactor -d artifactor"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4.0'
+        reservations:
+          memory: 2G
+          cpus: '2.0'
+
+  redis-cluster-1:
+    image: redis:7-alpine
+    container_name: artifactor-redis-1
+    restart: unless-stopped
+    command: >
+      redis-server
+      --port 6379
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_1_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - artifactor-prod-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  redis-cluster-2:
+    image: redis:7-alpine
+    container_name: artifactor-redis-2
+    restart: unless-stopped
+    command: >
+      redis-server
+      --port 6380
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_2_data:/data
+    ports:
+      - "6380:6380"
+    networks:
+      - artifactor-prod-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  redis-cluster-3:
+    image: redis:7-alpine
+    container_name: artifactor-redis-3
+    restart: unless-stopped
+    command: >
+      redis-server
+      --port 6381
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_3_data:/data
+    ports:
+      - "6381:6381"
+    networks:
+      - artifactor-prod-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # =====================================
+  # BACKEND SERVICES (PRODUCTION)
+  # =====================================
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    image: artifactor-backend:prod
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD}@postgres-primary:5432/artifactor
+      REDIS_URL: redis://redis-cluster-1:6379,redis://redis-cluster-2:6380,redis://redis-cluster-3:6381
+
+      # Production settings
+      ENVIRONMENT: production
+      DEBUG: false
+      LOG_LEVEL: info
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+
+      # OAuth
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+
+      # Features
+      ENABLE_ML_CLASSIFICATION: ${ENABLE_ML_CLASSIFICATION:-true}
+      ENABLE_SEMANTIC_SEARCH: ${ENABLE_SEMANTIC_SEARCH:-true}
+      ENABLE_METRICS: true
+
+      # CORS
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+
+      # Performance
+      WORKERS: ${WORKERS:-8}
+      MAX_WORKERS: ${MAX_WORKERS:-32}
+    volumes:
+      - ./downloads:/app/downloads
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - prod_logs:/app/logs
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-cluster-1:
+        condition: service_started
+      redis-cluster-2:
+        condition: service_started
+      redis-cluster-3:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4.0'
+        reservations:
+          memory: 2G
+          cpus: '2.0'
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+
+  # =====================================
+  # ML SERVICE (PRODUCTION)
+  # =====================================
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: ml-service/Dockerfile
+      target: production
+      args:
+        ENABLE_GPU: ${ENABLE_GPU:-false}
+    image: artifactor-ml-service:prod
+    restart: unless-stopped
+    environment:
+      # Service Configuration
+      ML_SERVICE_HOST: 0.0.0.0
+      ML_SERVICE_PORT: 8001
+
+      # Database
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD}@postgres-primary:5432/artifactor
+      REDIS_URL: redis://redis-cluster-1:6379
+
+      # Performance
+      BATCH_SIZE: ${ML_BATCH_SIZE:-64}
+      MAX_WORKERS: ${ML_MAX_WORKERS:-8}
+      ENABLE_GPU: ${ENABLE_GPU:-false}
+    volumes:
+      - ./models:/app/models
+      - ./search_index:/app/search_index
+      - ml_logs:/app/logs
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-cluster-1:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 8G
+          cpus: '8.0'
+        reservations:
+          memory: 4G
+          cpus: '4.0'
+
+  # =====================================
+  # FRONTEND (PRODUCTION)
+  # =====================================
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: production
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+        REACT_APP_WS_URL: ${REACT_APP_WS_URL}
+        REACT_APP_ENVIRONMENT: production
+        REACT_APP_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+    image: artifactor-frontend:prod
+    restart: unless-stopped
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+
+  # =====================================
+  # LOAD BALANCER (PRODUCTION)
+  # =====================================
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    image: artifactor-nginx:prod
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - prod_nginx_logs:/var/log/nginx
+      - nginx_cache:/var/cache/nginx
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      - frontend
+      - backend
+      - ml-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+
+  # =====================================
+  # MONITORING (PRODUCTION)
+  # =====================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: artifactor-prometheus-prod
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./monitoring/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_prod_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - artifactor-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: artifactor-grafana-prod
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_AUTH_ANONYMOUS_ENABLED: false
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_prod_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # =====================================
+  # BACKGROUND SERVICES (PRODUCTION)
+  # =====================================
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    image: artifactor-backend:prod
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment:
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD}@postgres-primary:5432/artifactor
+      REDIS_URL: redis://redis-cluster-1:6379
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-8}
+    volumes:
+      - ./downloads:/app/downloads
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - worker_logs:/app/logs
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-cluster-1:
+        condition: service_started
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+          cpus: '2.0'
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    image: artifactor-backend:prod
+    restart: unless-stopped
+    command: ["python", "-m", "app.scheduler"]
+    environment:
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD}@postgres-primary:5432/artifactor
+      REDIS_URL: redis://redis-cluster-1:6379
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+    volumes:
+      - scheduler_logs:/app/logs
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-cluster-1:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # =====================================
+  # BACKUP SERVICE (PRODUCTION)
+  # =====================================
+
+  backup:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.backup
+    image: artifactor-backup:prod
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://artifactor:${POSTGRES_PASSWORD}@postgres-primary:5432/artifactor
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ./database/backups:/backups
+      - backup_logs:/var/log
+    networks:
+      - artifactor-prod-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    profiles:
+      - backup
+
+# =====================================
+# NETWORKS
+# =====================================
+
+networks:
+  artifactor-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# =====================================
+# VOLUMES
+# =====================================
+
+volumes:
+  postgres_primary_data:
+    driver: local
+  redis_1_data:
+    driver: local
+  redis_2_data:
+    driver: local
+  redis_3_data:
+    driver: local
+  prometheus_prod_data:
+    driver: local
+  grafana_prod_data:
+    driver: local
+  nginx_cache:
+    driver: local
+  prod_logs:
+    driver: local
+  ml_logs:
+    driver: local
+  worker_logs:
+    driver: local
+  scheduler_logs:
+    driver: local
+  backup_logs:
+    driver: local
+  prod_nginx_logs:
+    driver: local
