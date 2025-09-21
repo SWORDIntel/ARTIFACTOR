@@ -49,21 +49,23 @@ cd ARTIFACTOR
 
 ### Option 2: Web Platform (v3.0) ✨ NEW
 ```bash
-# Launch complete web platform with all features
-./artifactor setup --verbose
-./artifactor web  # Launch web server + React frontend
+# Launch complete web platform with Docker
+cd /home/john/ARTIFACTOR
+docker-compose -f docker/docker-compose.yml up
 
-# Access at: http://localhost:3000
+# Access at: http://localhost:3000 (or randomized port)
 # Features: ML classification, real-time collaboration, mobile PWA
+# Dark theme only (no light theme torture)
 ```
 
-### Option 3: Production Deployment ✨ NEW
+### Option 3: Direct Development ✨ NEW
 ```bash
-# Enterprise Kubernetes deployment
-./scripts/deploy.sh production
-./scripts/health-check.sh artifactor
+# Manual backend/frontend development
+cd backend && pip install -r requirements.txt && uvicorn main:app --reload
+cd frontend && npm install && npm start
 
-# Includes: Auto-scaling, monitoring, security, disaster recovery
+# Localhost-only security by default
+# Randomized ports for security (see .env.example)
 ```
 
 The launcher automatically:
@@ -101,17 +103,26 @@ The launcher automatically:
 ### Prerequisites
 - Python 3.7+
 - Git
+- Docker & Docker Compose (for web platform)
 
-### Automatic Setup
-The launcher handles everything automatically:
+### Quick Start - Just Works
 ```bash
-./artifactor setup
+# Clone and run - completely self-contained
+git clone https://github.com/SWORDIntel/ARTIFACTOR.git
+cd ARTIFACTOR
+./artifactor  # Desktop version - auto-installs everything
+
+# OR launch web platform
+docker-compose -f docker/docker-compose.yml up  # Web version
 ```
 
-This creates:
-- Isolated virtual environment at `~/.claude-artifacts/venv/`
-- All required dependencies installed
-- Configuration and launcher scripts
+### Automatic Setup Details
+The launcher is completely autonomous:
+- ✅ Creates isolated virtual environment automatically
+- ✅ Installs all 22+ dependencies
+- ✅ Sets up configuration and launchers
+- ✅ Runs localhost-only by default (secure)
+- ✅ Beautiful dark theme (no light theme torture)
 
 ### Manual Setup
 ```bash
@@ -228,17 +239,20 @@ DISPLAY=""                        # Disable GUI for CLI mode
 
 ## 🔒 Security
 
-### Security Features
+### Security Features ✨ ENHANCED
+- **Localhost-Only Binding**: Docker containers bind to 127.0.0.1 by default (secure)
+- **Randomized Ports**: All ports randomized for security (see .env.example)
 - **Input Validation**: URL sanitization and path traversal prevention
 - **File Safety**: Content type validation and size limits
-- **Isolation**: Virtual environment prevents system contamination
-- **Permission Handling**: Automatic permission bypass for restricted environments
+- **Virtual Environment Isolation**: Complete separation from system packages
+- **Permission Handling**: Automatic bypass for restricted environments
 
-### Best Practices
-- All user inputs are validated and sanitized
-- File operations are contained within designated directories
-- Network requests use secure protocols with proper timeouts
-- Error messages don't expose sensitive system information
+### Security by Default
+- ✅ All Docker services localhost-only (127.0.0.1:PORT)
+- ✅ Randomized port numbers (PostgreSQL: 5834, Redis: 6521, etc.)
+- ✅ Dark theme only (prevents light theme security vulnerabilities 😄)
+- ✅ Isolated virtual environments prevent system contamination
+- ✅ Comprehensive input validation and sanitization
 
 ## 🤝 Contributing
 
