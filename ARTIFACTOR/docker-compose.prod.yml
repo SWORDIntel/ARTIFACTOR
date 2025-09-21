@@ -81,7 +81,7 @@ services:
     volumes:
       - redis_1_data:/data
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6521}:6379"
     networks:
       - artifactor-prod-network
     deploy:

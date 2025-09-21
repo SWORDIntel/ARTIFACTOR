@@ -25,9 +25,9 @@ cd ARTIFACTOR
 make dev
 
 # Access the platform:
-# Frontend:     http://localhost:3000
-# Backend API:  http://localhost:8000/api/v1/docs
-# Monitoring:   http://localhost:3001 (Grafana)
+# Frontend:     http://localhost:3247
+# Backend API:  http://localhost:8912/api/v1/docs
+# Monitoring:   http://localhost:3089 (Grafana)
 ```
 
 ### Production Deployment
