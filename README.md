@@ -306,6 +306,8 @@ This project is open source. See the repository for license details.
 - **Repository**: https://github.com/SWORDIntel/ARTIFACTOR
 - **Issues**: Report bugs via GitHub Issues
 - **Documentation**: This README and inline code documentation
+- **Contact**: ARTIFACTOR@swordintelligence.airforce
+- **Domain**: https://swordintelligence.airforce
 
 ## 🎯 Roadmap
 
@@ -334,3 +336,13 @@ This project is open source. See the repository for license details.
 **ARTIFACTOR** - Making Claude.ai artifact management simple, reliable, and powerful. Your mouse will thank you, your wrist will love you, and your productivity will skyrocket.
 
 *Remember: Friends don't let friends download files one by one.*
+
+---
+
+## 📞 Contact & Support
+
+**Email**: ARTIFACTOR@swordintelligence.airforce
+**Website**: https://swordintelligence.airforce
+**Repository**: https://github.com/SWORDIntel/ARTIFACTOR
+
+*Developed by SWORD Intelligence - Advanced AI & Software Solutions*
