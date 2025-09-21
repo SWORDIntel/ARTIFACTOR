@@ -13,22 +13,72 @@ Complete enterprise-grade platform for managing Claude.ai artifacts with real-ti
 - **Plugin Ecosystem**: Secure, sandboxed extensions with GitHub integration
 - **Production Infrastructure**: Auto-scaling Docker orchestration with monitoring
 
+## Prerequisites
+
+- **Docker** - [Install Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose** - Usually included with Docker Desktop
+- **Git** - For cloning the repository
+
+**That's all!** No complex setup, no language-specific dependencies.
+
 ## Quick Start
 
-### Development Environment
+### Local Development (Recommended)
 ```bash
-# Clone repository
+# Prerequisites: Docker and Docker Compose installed
+
+# 1. Clone the repository
 git clone https://github.com/SWORDIntel/ARTIFACTOR.git
 cd ARTIFACTOR
 
-# Start development environment
+# 2. Start the entire platform locally (one command!)
 make dev
 
-# Access the platform:
-# Frontend:     http://localhost:3247
-# Backend API:  http://localhost:8912/api/v1/docs
-# Monitoring:   http://localhost:3089 (Grafana)
+# 3. Wait for services to start (30-60 seconds)
+# You'll see "✓ All services are healthy" when ready
+
+# 4. Open your browser and access:
+# - Main App:      http://localhost:3247      (Beautiful dark theme!)
+# - API Docs:      http://localhost:8912/api/v1/docs
+# - Monitoring:    http://localhost:3089      (Grafana dashboard)
+# - Database:      localhost:5834             (PostgreSQL)
+# - Redis:         localhost:6521             (Cache)
 ```
+
+**That's it!** The platform runs entirely on your local machine with:
+- ✅ **Secure by default** - Only accessible from your computer
+- ✅ **Auto-setup** - Databases, services, and dependencies configured automatically
+- ✅ **Hot reloading** - Frontend and backend update automatically during development
+- ✅ **Full features** - Real-time collaboration, ML classification, dark theme
+
+### Stop the Platform
+```bash
+# Stop all services
+make stop
+
+# Remove all containers and data (complete cleanup)
+make clean
+```
+
+### Troubleshooting Local Development
+```bash
+# Check if services are running
+make status
+
+# View logs for debugging
+make logs
+
+# Restart specific service
+docker-compose restart frontend
+
+# Reset everything if having issues
+make clean && make dev
+```
+
+**Common Issues:**
+- **Port conflicts**: If you get port errors, stop other services using ports 3247, 8912, etc.
+- **Docker issues**: Make sure Docker is running and you have enough memory (4GB+ recommended)
+- **Slow startup**: First run downloads images - subsequent starts are much faster
 
 ### Production Deployment
 ```bash
