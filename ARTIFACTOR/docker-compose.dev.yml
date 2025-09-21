@@ -20,7 +20,7 @@ services:
       - postgres_dev_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "${POSTGRES_PORT:-5834}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5834}:5432"
     networks:
       - artifactor-dev-network
     healthcheck:
