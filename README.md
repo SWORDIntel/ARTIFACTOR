@@ -93,6 +93,88 @@ A fully-secured, performance-optimized web platform for managing Claude.ai artif
 - **Compliance**: Audit logging, security monitoring, vulnerability management
 - **Operational Security**: Automated security validation, continuous monitoring
 
+## 📖 **How to Use with Claude.ai**
+
+### **Step 1: Get Your Claude.ai Artifact URL**
+1. **Open Claude.ai** in your browser: https://claude.ai
+2. **Create or find a conversation** that has generated code, files, or artifacts
+3. **Look for the artifact preview** (code blocks, file downloads, or interactive content)
+4. **Copy the conversation URL** from your browser address bar
+   - Example: `https://claude.ai/chat/12345678-1234-1234-1234-123456789abc`
+
+### **Step 2: Download with ARTIFACTOR**
+
+#### **🖥️ Desktop GUI Method (Recommended)**
+```bash
+# Launch the dark theme GUI
+./artifactor
+# or
+python3 claude-artifact-coordinator.py
+```
+1. **Paste the Claude.ai URL** into the URL field
+2. **Choose output directory** for your downloaded files
+3. **Click "Test Tandem Operation"** to start the download
+4. **Watch real-time progress** in the dark theme interface
+
+#### **⚡ Command Line Method**
+```bash
+# Quick CLI download
+python3 claude-artifact-downloader.py --url "https://claude.ai/chat/your-chat-id"
+
+# Specify output directory
+python3 claude-artifact-downloader.py --url "https://claude.ai/chat/your-chat-id" --output "./my-artifacts"
+
+# Download specific file types
+python3 claude-artifact-downloader.py --url "https://claude.ai/chat/your-chat-id" --types "py,js,html"
+```
+
+#### **🌐 Web Platform Method**
+```bash
+# Start the web platform
+docker-compose up -d
+
+# Open browser to http://localhost:3000
+# Paste Claude.ai URL and download through web interface
+```
+
+### **Step 3: What Gets Downloaded**
+- **Python scripts** (.py files)
+- **JavaScript code** (.js files)
+- **HTML/CSS files** (.html, .css)
+- **Configuration files** (.json, .yaml, .toml)
+- **Documentation** (.md files)
+- **Data files** (.csv, .txt, .xml)
+- **And more** - 25+ file types detected automatically
+
+### **📁 Example Workflows**
+
+**Scenario 1: Claude generates a Python web app**
+```bash
+# Claude.ai creates Flask app with multiple files
+./artifactor --url "https://claude.ai/chat/abc123" --output "./my-flask-app"
+# Downloads: app.py, templates/index.html, static/style.css, requirements.txt
+```
+
+**Scenario 2: Claude creates a React component**
+```bash
+# Claude.ai generates React component with TypeScript
+./artifactor --url "https://claude.ai/chat/def456" --output "./react-components"
+# Downloads: MyComponent.tsx, MyComponent.test.ts, index.ts
+```
+
+**Scenario 3: Claude provides configuration files**
+```bash
+# Claude.ai generates Docker setup with configs
+./artifactor --url "https://claude.ai/chat/ghi789" --output "./docker-setup"
+# Downloads: Dockerfile, docker-compose.yml, nginx.conf, .env.example
+```
+
+### **💡 Pro Tips**
+- **Use descriptive output folders**: `--output "./project-name-$(date +%Y%m%d)"`
+- **Preview before downloading**: Check the conversation for file types first
+- **Batch processing**: Save multiple Claude.ai URLs in a text file for bulk downloads
+- **Version control**: ARTIFACTOR preserves original code structure and formatting
+
 ## 🚀 Production Quick Start
 
 ### 🐳 Option 1: Production Docker Deployment (Recommended)

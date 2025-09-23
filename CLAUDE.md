@@ -64,6 +64,128 @@ ARTIFACTOR is a comprehensive solution for downloading and managing artifacts fr
 - **`README.md`** (8,903 bytes) - Comprehensive project documentation
 - **`CLAUDE.md`** - This project context file
 
+## 📖 **How to Use with Claude.ai Conversations**
+
+### **Basic Workflow**
+1. **Have a conversation with Claude.ai** that generates code, files, or artifacts
+2. **Copy the conversation URL** from your browser
+3. **Use ARTIFACTOR** to download all artifacts from that conversation
+
+### **Real-World Examples**
+
+#### **Example 1: Downloading a Python Web Application**
+```bash
+# Claude.ai conversation: "Create a Flask web app with user authentication"
+# URL: https://claude.ai/chat/550e8400-e29b-41d4-a716-446655440000
+
+# Launch GUI
+./artifactor
+
+# Or use CLI
+python3 claude-artifact-downloader.py \
+  --url "https://claude.ai/chat/550e8400-e29b-41d4-a716-446655440000" \
+  --output "./flask-auth-app"
+
+# Downloads:
+# - app.py (main Flask application)
+# - templates/login.html (login form)
+# - templates/dashboard.html (user dashboard)
+# - static/style.css (styling)
+# - requirements.txt (dependencies)
+# - config.py (configuration)
+```
+
+#### **Example 2: React Component Development**
+```bash
+# Claude.ai conversation: "Build a React dashboard with charts"
+# URL: https://claude.ai/chat/123e4567-e89b-12d3-a456-426614174000
+
+# Download via web interface
+docker-compose up -d
+# Navigate to http://localhost:3000
+# Paste URL and download
+
+# Result:
+# - Dashboard.tsx (main component)
+# - ChartComponent.tsx (chart implementation)
+# - Dashboard.module.css (component styles)
+# - types.ts (TypeScript definitions)
+# - package.json (dependencies)
+```
+
+#### **Example 3: DevOps Configuration Files**
+```bash
+# Claude.ai conversation: "Set up Docker deployment with Nginx"
+# URL: https://claude.ai/chat/987fcdeb-51d2-4321-b987-654321098765
+
+# CLI with specific file types
+python3 claude-artifact-downloader.py \
+  --url "https://claude.ai/chat/987fcdeb-51d2-4321-b987-654321098765" \
+  --types "dockerfile,yml,conf" \
+  --output "./docker-deployment"
+
+# Downloads:
+# - Dockerfile (application container)
+# - docker-compose.yml (orchestration)
+# - nginx.conf (web server config)
+# - .env.example (environment variables)
+```
+
+### **Advanced Usage Patterns**
+
+#### **Batch Processing Multiple Conversations**
+```bash
+# Create a list of Claude.ai URLs
+cat > claude_urls.txt << EOF
+https://claude.ai/chat/conversation-1
+https://claude.ai/chat/conversation-2
+https://claude.ai/chat/conversation-3
+EOF
+
+# Process each URL
+while read url; do
+  python3 claude-artifact-downloader.py --url "$url" --output "./batch-$(date +%s)"
+done < claude_urls.txt
+```
+
+#### **Project Organization**
+```bash
+# Organize by date and project
+PROJECT_NAME="my-ai-project"
+DATE=$(date +%Y%m%d)
+OUTPUT_DIR="./${PROJECT_NAME}-${DATE}"
+
+./artifactor --url "https://claude.ai/chat/your-conversation" --output "$OUTPUT_DIR"
+```
+
+#### **Integration with Version Control**
+```bash
+# Download and immediately commit to git
+python3 claude-artifact-downloader.py \
+  --url "https://claude.ai/chat/your-conversation" \
+  --output "./src"
+
+git add .
+git commit -m "Add artifacts from Claude.ai conversation"
+```
+
+### **File Type Detection Examples**
+
+ARTIFACTOR automatically detects and preserves file extensions:
+
+```bash
+# Claude.ai generates mixed content:
+# - Python scripts → .py files
+# - HTML templates → .html files
+# - CSS styles → .css files
+# - JSON configs → .json files
+# - Markdown docs → .md files
+# - Shell scripts → .sh files
+# - YAML configs → .yml/.yaml files
+
+# All downloaded with proper extensions and structure
+```
+
 ## Usage Examples
 
 ### Basic Usage
