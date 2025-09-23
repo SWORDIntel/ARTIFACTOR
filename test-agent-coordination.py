@@ -11,7 +11,16 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ['DISPLAY'] = ''  # Disable GUI
 
 # Import coordinator components directly
-exec(open('claude-artifact-coordinator.py').read())
+try:
+    from claude_artifact_coordinator import AgentCoordinator
+except ImportError:
+    # Fallback: try to import from the same directory
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("claude_artifact_coordinator", "claude-artifact-coordinator.py")
+    claude_artifact_coordinator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(claude_artifact_coordinator)
+    AgentCoordinator = claude_artifact_coordinator.AgentCoordinator
+
 import json
 import time
 
@@ -100,20 +109,36 @@ def test_coordination():
     results = coordinator.coordinate_tandem_operation('download_artifact', test_params)
 
     print(f"\n📊 Workflow Results ({len(results)} agents):")
+    all_successful = True
     for agent_name, result in results.items():
         status_icon = "✅" if result.success else "❌"
+        if not result.success:
+            all_successful = False
         print(f"   {status_icon} {agent_name.upper()}: {result.message}")
         print(f"      Execution time: {result.execution_time:.3f}s")
 
         # Show relevant data
         if result.data:
-            if agent_name == 'debugger' and 'validation_results' in result.data:
-                issues = result.data['validation_results']
-                if issues:
-                    print(f"      Issues found: {len(issues)}")
-            elif agent_name == 'python_internal' and 'available_modules' in result.data:
-                modules = result.data['available_modules']
-                print(f"      Modules ready: {', '.join(modules)}")
+            if agent_name == 'debugger':
+                if 'validation_results' in result.data:
+                    validation_results = result.data['validation_results']
+                    print(f"      Validation results: {len(validation_results)} files checked")
+                    for vr in validation_results:
+                        file_status = "✅" if vr.get('exists', False) else "❌"
+                        print(f"        {file_status} {vr['file']} ({vr.get('size_bytes', 0)} bytes)")
+                elif 'available_modules' in result.data:
+                    modules = result.data['available_modules']
+                    print(f"      Modules ready: {', '.join(modules)}")
+            elif agent_name == 'python_internal':
+                if 'file_created' in result.data:
+                    file_created = result.data['file_created']
+                    test_mode = result.data.get('test_mode', False)
+                    print(f"      File created: {file_created} (test mode: {test_mode})")
+                elif 'available_modules' in result.data:
+                    modules = result.data['available_modules']
+                    print(f"      Modules ready: {', '.join(modules)}")
+
+    print(f"\n🎯 Workflow Status: {'✅ All steps successful!' if all_successful else '❌ Some steps failed'}")
 
     # Test 4: Error handling and recovery
     print("\n4️⃣ Testing Error Handling:")
@@ -154,7 +179,39 @@ def test_coordination():
     print(f"   Successful operations: {successful_operations}/{len(results)}")
     print(f"   Success rate: {(successful_operations/len(results)*100):.1f}%")
 
+    # Check test mode status
+    status = coordinator.get_coordination_status()
+    test_mode_info = status.get('test_mode', {})
+    if test_mode_info:
+        print(f"   Test mode: {'enabled' if test_mode_info.get('test_mode_enabled', False) else 'disabled'}")
+        print(f"   Test files created: {test_mode_info.get('test_files_created', 0)}")
+
+    # Manual test of download workflow to ensure it works
+    print(f"\n6️⃣ Manual Download Test:")
+    print("-" * 20)
+
+    print("🧪 Testing direct download execution...")
+    download_result = coordinator.agents['python_internal'].execute_action('execute_download', {
+        'url': 'https://httpbin.org/json',
+        'output_path': '/tmp/manual_test.json'
+    })
+    print(f"   Download: {'✅' if download_result.success else '❌'} {download_result.message}")
+
+    if download_result.success and download_result.data.get('file_created'):
+        print("🔍 Testing validation of created file...")
+        validation_result = coordinator.agents['debugger'].execute_action('validate_output', {
+            'expected_files': ['/tmp/manual_test.json'],
+            'previous_results': {'python_internal': download_result}
+        })
+        print(f"   Validation: {'✅' if validation_result.success else '❌'} {validation_result.message}")
+
+        if validation_result.data and 'validation_results' in validation_result.data:
+            for vr in validation_result.data['validation_results']:
+                file_status = "✅" if vr.get('exists', False) else "❌"
+                print(f"     {file_status} {vr['file']} ({vr.get('size_bytes', 0)} bytes, test_mode: {vr.get('test_mode', False)})")
+
     # Cleanup
+    coordinator.cleanup_all_test_files()
     coordinator.shutdown()
     print(f"\n✅ Coordination system test completed successfully!")
 

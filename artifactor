@@ -28,7 +28,7 @@ show_banner() {
     echo " ██╔══██║██╔══██╗   ██║   ██║██╔══╝  ██╔══██║██║        ██║   ██║   ██║██╔══██╗"
     echo " ██║  ██║██║  ██║   ██║   ██║██║     ██║  ██║╚██████╗   ██║   ╚██████╔╝██║  ██║"
     echo " ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝"
-    echo -e "${WHITE}                     Claude.ai Artifact Downloader v2.0${NC}"
+    echo -e "${WHITE}                     Claude.ai Artifact Downloader v3.0${NC}"
     echo -e "${PURPLE}                 PyGUI + PYTHON-INTERNAL + DEBUGGER Coordination${NC}"
     echo ""
 }

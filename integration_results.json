@@ -1,0 +1,94 @@
+{
+  "agent": "INTEGRATOR",
+  "version": "3.0.0",
+  "timestamp": "2025-09-23T00:28:53.669430",
+  "categories": {
+    "service_integration": {
+      "name": "Service Component Integration",
+      "tests": [],
+      "results": {
+        "frontend_backend_integration": true,
+        "backend_core_integration": false,
+        "api_endpoint_functional": 0,
+        "api_endpoint_failed": 0,
+        "service_dependencies_resolved": true,
+        "database_connections": false,
+        "critical_issues": [
+          "Core service integration failed: claude-artifact-coordinator.py",
+          "Core service integration failed: claude-artifact-downloader.py",
+          "Core service integration failed: claude-artifact-launcher.py"
+        ]
+      },
+      "status": "failed"
+    },
+    "agent_coordination": {
+      "name": "Agent Coordination Systems",
+      "tests": [],
+      "results": {
+        "agent_files_present": 4,
+        "coordination_test_passed": true,
+        "tandem_operation_functional": true,
+        "agent_communication_working": true,
+        "agent_errors": [
+          "Agent syntax error: validator_agent.py",
+          "Agent syntax error: integrator_agent.py"
+        ],
+        "critical_issues": []
+      },
+      "status": "passed"
+    },
+    "deployment_pipeline": {
+      "name": "Deployment Pipeline Validation",
+      "tests": [],
+      "results": {
+        "docker_setup_functional": false,
+        "kubernetes_configs_valid": false,
+        "setup_scripts_working": 3,
+        "setup_scripts_failed": 0,
+        "environment_setup_tested": true,
+        "deployment_ready": true,
+        "critical_issues": []
+      },
+      "status": "passed"
+    },
+    "configuration_consistency": {
+      "name": "Configuration Consistency",
+      "tests": [],
+      "results": {
+        "version_consistency": true,
+        "dependency_consistency": true,
+        "configuration_files_valid": 3,
+        "configuration_conflicts": [
+          "Potential localhost in production config: backend/config.py"
+        ],
+        "environment_variables_consistent": false,
+        "critical_issues": []
+      },
+      "status": "failed"
+    },
+    "end_to_end_workflows": {
+      "name": "End-to-End Workflow Testing",
+      "tests": [],
+      "results": {
+        "launcher_workflow_functional": true,
+        "coordinator_workflow_functional": true,
+        "downloader_workflow_functional": true,
+        "full_pipeline_tested": true,
+        "workflow_errors": [],
+        "critical_issues": []
+      },
+      "status": "passed"
+    }
+  },
+  "overall_status": "failed",
+  "integration_ready": false,
+  "critical_issues": [],
+  "warnings": [],
+  "summary": {
+    "total_integrations": 5,
+    "passed_integrations": 3,
+    "failed_integrations": 2,
+    "success_rate_percent": 60.0,
+    "integration_time_seconds": 50.73
+  }
+}

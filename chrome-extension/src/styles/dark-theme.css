@@ -1,0 +1,453 @@
+/* ARTIFACTOR Dark Theme CSS for Chrome Extension */
+/* Matching colors from PyGUI coordinator DarkTheme class */
+
+:root {
+  /* Primary colors */
+  --bg-primary: #2B2B2B;          /* Main background */
+  --bg-secondary: #363636;        /* Secondary background */
+  --bg-tertiary: #404040;         /* Raised elements */
+
+  /* Text colors */
+  --text-primary: #FFFFFF;        /* Primary text */
+  --text-secondary: #CCCCCC;      /* Secondary text */
+  --text-disabled: #808080;       /* Disabled text */
+
+  /* Accent colors */
+  --accent-blue: #0078D4;         /* Primary accent */
+  --accent-green: #107C10;        /* Success/positive */
+  --accent-orange: #FF8C00;       /* Warning/caution */
+  --accent-red: #D13438;          /* Error/negative */
+
+  /* Border and outline colors */
+  --border-light: #555555;        /* Light borders */
+  --border-dark: #1F1F1F;         /* Dark borders */
+
+  /* Interactive states */
+  --hover-bg: #464646;            /* Hover background */
+  --active-bg: #505050;           /* Active/pressed background */
+  --selected-bg: #094771;         /* Selected background */
+
+  /* Component-specific colors */
+  --button-bg: #484848;           /* Button background */
+  --button-hover: #525252;        /* Button hover */
+  --button-active: #5C5C5C;       /* Button active */
+
+  --input-bg: #3C3C3C;            /* Input field background */
+  --input-border: #565656;        /* Input field border */
+  --input-focus: #0078D4;         /* Input field focus border */
+
+  --progress-bg: #3A3A3A;         /* Progress bar background */
+  --progress-fill: #0078D4;       /* Progress bar fill */
+
+  /* Typography */
+  --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-size: 13px;
+  --font-size-small: 11px;
+  --font-size-large: 15px;
+  --font-size-title: 18px;
+
+  /* Layout */
+  --border-radius: 8px;
+  --border-radius-small: 4px;
+  --border-radius-large: 12px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+
+  /* Shadows */
+  --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-large: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Base component styles */
+.artifactor-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
+}
+
+.artifactor-header {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  font-weight: 600;
+  font-size: var(--font-size-large);
+}
+
+.artifactor-content {
+  padding: var(--spacing-lg);
+  background-color: var(--bg-primary);
+}
+
+/* Button styles */
+.artifactor-button {
+  background-color: var(--button-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 32px;
+}
+
+.artifactor-button:hover {
+  background-color: var(--button-hover);
+  border-color: var(--input-focus);
+}
+
+.artifactor-button:active {
+  background-color: var(--button-active);
+}
+
+.artifactor-button:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+  border-color: var(--border-dark);
+}
+
+.artifactor-button.primary {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.artifactor-button.primary:hover {
+  background-color: #106ebe;
+}
+
+.artifactor-button.success {
+  background-color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.artifactor-button.warning {
+  background-color: var(--accent-orange);
+  border-color: var(--accent-orange);
+}
+
+.artifactor-button.danger {
+  background-color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+/* Input styles */
+.artifactor-input {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  min-height: 32px;
+  transition: border-color 0.2s ease;
+}
+
+.artifactor-input:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+.artifactor-input::placeholder {
+  color: var(--text-disabled);
+}
+
+/* Select styles */
+.artifactor-select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.artifactor-select:focus {
+  outline: none;
+  border-color: var(--input-focus);
+}
+
+/* Checkbox styles */
+.artifactor-checkbox {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius-small);
+  background-color: var(--input-bg);
+  cursor: pointer;
+  position: relative;
+  margin-right: var(--spacing-xs);
+}
+
+.artifactor-checkbox:checked {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.artifactor-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -1px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+}
+
+/* Progress bar styles */
+.artifactor-progress {
+  background-color: var(--progress-bg);
+  border-radius: var(--border-radius);
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.artifactor-progress-fill {
+  background-color: var(--progress-fill);
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: var(--border-radius);
+}
+
+/* Card styles */
+.artifactor-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-small);
+}
+
+.artifactor-card:hover {
+  box-shadow: var(--shadow-medium);
+  border-color: var(--input-focus);
+}
+
+/* Badge styles */
+.artifactor-badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.artifactor-badge.success {
+  background-color: var(--accent-green);
+  color: white;
+}
+
+.artifactor-badge.warning {
+  background-color: var(--accent-orange);
+  color: white;
+}
+
+.artifactor-badge.error {
+  background-color: var(--accent-red);
+  color: white;
+}
+
+.artifactor-badge.info {
+  background-color: var(--accent-blue);
+  color: white;
+}
+
+/* Notification styles */
+.artifactor-notification {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-md);
+  border-left: 4px solid;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.artifactor-notification.success {
+  background-color: rgba(16, 124, 16, 0.1);
+  border-color: var(--accent-green);
+  color: var(--text-primary);
+}
+
+.artifactor-notification.warning {
+  background-color: rgba(255, 140, 0, 0.1);
+  border-color: var(--accent-orange);
+  color: var(--text-primary);
+}
+
+.artifactor-notification.error {
+  background-color: rgba(209, 52, 56, 0.1);
+  border-color: var(--accent-red);
+  color: var(--text-primary);
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: var(--border-radius-small);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hover-bg);
+}
+
+/* Tooltip styles */
+.artifactor-tooltip {
+  position: absolute;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-small);
+  box-shadow: var(--shadow-medium);
+  z-index: 1000;
+  white-space: nowrap;
+  border: 1px solid var(--border-light);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.artifactor-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.artifactor-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Utility classes */
+.artifactor-text-center {
+  text-align: center;
+}
+
+.artifactor-text-right {
+  text-align: right;
+}
+
+.artifactor-flex {
+  display: flex;
+}
+
+.artifactor-flex-column {
+  flex-direction: column;
+}
+
+.artifactor-flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.artifactor-flex-between {
+  justify-content: space-between;
+}
+
+.artifactor-flex-grow {
+  flex: 1;
+}
+
+.artifactor-gap-xs {
+  gap: var(--spacing-xs);
+}
+
+.artifactor-gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.artifactor-gap-md {
+  gap: var(--spacing-md);
+}
+
+.artifactor-gap-lg {
+  gap: var(--spacing-lg);
+}
+
+.artifactor-m-0 { margin: 0; }
+.artifactor-mt-xs { margin-top: var(--spacing-xs); }
+.artifactor-mt-sm { margin-top: var(--spacing-sm); }
+.artifactor-mt-md { margin-top: var(--spacing-md); }
+.artifactor-mt-lg { margin-top: var(--spacing-lg); }
+.artifactor-mb-xs { margin-bottom: var(--spacing-xs); }
+.artifactor-mb-sm { margin-bottom: var(--spacing-sm); }
+.artifactor-mb-md { margin-bottom: var(--spacing-md); }
+.artifactor-mb-lg { margin-bottom: var(--spacing-lg); }
+
+.artifactor-p-0 { padding: 0; }
+.artifactor-p-xs { padding: var(--spacing-xs); }
+.artifactor-p-sm { padding: var(--spacing-sm); }
+.artifactor-p-md { padding: var(--spacing-md); }
+.artifactor-p-lg { padding: var(--spacing-lg); }
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .artifactor-button {
+    min-height: 40px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .artifactor-input {
+    min-height: 40px;
+    padding: var(--spacing-md);
+  }
+}

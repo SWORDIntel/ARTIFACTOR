@@ -1,0 +1,176 @@
+{
+  "timestamp": "2025-09-23T01:53:46.976274",
+  "overall_status": "CRITICAL",
+  "security_score": 55,
+  "summary": {
+    "total_security_issues": 4,
+    "high_severity": 1,
+    "medium_severity": 0,
+    "low_severity": 3,
+    "total_patches": 20,
+    "security_patches": 0,
+    "performance_patches": 3,
+    "compatibility_patches": 4,
+    "duration": 0.01
+  },
+  "security_issues": [
+    {
+      "severity": "HIGH",
+      "category": "CSP",
+      "description": "No Content Security Policy defined",
+      "location": "manifest.json",
+      "recommendation": "Add comprehensive CSP configuration"
+    },
+    {
+      "severity": "LOW",
+      "category": "Error Handling",
+      "description": "Unbalanced try/catch blocks",
+      "location": "src/background/index.ts",
+      "recommendation": "Ensure proper error handling"
+    },
+    {
+      "severity": "LOW",
+      "category": "Error Handling",
+      "description": "Unbalanced try/catch blocks",
+      "location": "src/pages/popup/index.tsx",
+      "recommendation": "Ensure proper error handling"
+    },
+    {
+      "severity": "LOW",
+      "category": "Error Handling",
+      "description": "Unbalanced try/catch blocks",
+      "location": "src/pages/options/index.tsx",
+      "recommendation": "Ensure proper error handling"
+    }
+  ],
+  "optimization_patches": [
+    {
+      "file_path": "manifest.json",
+      "patch_type": "CSP Optimization",
+      "description": "Optimize Content Security Policy",
+      "impact": "Enhanced CSP security"
+    },
+    {
+      "file_path": "src/content/index.ts",
+      "patch_type": "Performance Optimization",
+      "description": "Apply performance improvements",
+      "impact": "Improved runtime performance"
+    },
+    {
+      "file_path": "src/utils/artifactUtils.ts",
+      "patch_type": "Performance Optimization",
+      "description": "Apply performance improvements",
+      "impact": "Improved runtime performance"
+    },
+    {
+      "file_path": "src/pages/popup/PopupApp.tsx",
+      "patch_type": "Performance Optimization",
+      "description": "Apply performance improvements",
+      "impact": "Improved runtime performance"
+    },
+    {
+      "file_path": "src/content/index.ts",
+      "patch_type": "Memory Leak Prevention",
+      "description": "Add event listener cleanup",
+      "impact": "Prevented memory leaks"
+    },
+    {
+      "file_path": "package.json",
+      "patch_type": "Unused Dependencies",
+      "description": "Remove unused dependencies: react-dom, webextension-polyfill",
+      "impact": "Reduced bundle size and attack surface"
+    },
+    {
+      "file_path": "src/background/index.ts",
+      "patch_type": "Async Optimization",
+      "description": "Replace synchronous operations with async",
+      "impact": "Non-blocking operations"
+    },
+    {
+      "file_path": "src/pages/popup/index.tsx",
+      "patch_type": "Lazy Loading",
+      "description": "Consider lazy loading for React components",
+      "impact": "Improved initial load time"
+    },
+    {
+      "file_path": "src/pages/popup/PopupApp.tsx",
+      "patch_type": "Lazy Loading",
+      "description": "Consider lazy loading for React components",
+      "impact": "Improved initial load time"
+    },
+    {
+      "file_path": "src/pages/options/index.tsx",
+      "patch_type": "Lazy Loading",
+      "description": "Consider lazy loading for React components",
+      "impact": "Improved initial load time"
+    },
+    {
+      "file_path": "src/pages/options/OptionsApp.tsx",
+      "patch_type": "Lazy Loading",
+      "description": "Consider lazy loading for React components",
+      "impact": "Improved initial load time"
+    },
+    {
+      "file_path": "src/pages/options/OptionsApp.tsx",
+      "patch_type": "Async Optimization",
+      "description": "Replace synchronous operations with async",
+      "impact": "Non-blocking operations"
+    },
+    {
+      "file_path": "src/content/index.ts",
+      "patch_type": "Cross-Browser Compatibility",
+      "description": "Add feature detection for Chrome APIs: runtime, storage",
+      "impact": "Better cross-browser compatibility"
+    },
+    {
+      "file_path": "src/background/index.ts",
+      "patch_type": "Cross-Browser Compatibility",
+      "description": "Add feature detection for Chrome APIs: tabs, runtime, storage, notifications, downloads, action",
+      "impact": "Better cross-browser compatibility"
+    },
+    {
+      "file_path": "src/pages/popup/PopupApp.tsx",
+      "patch_type": "Cross-Browser Compatibility",
+      "description": "Add feature detection for Chrome APIs: tabs, runtime",
+      "impact": "Better cross-browser compatibility"
+    },
+    {
+      "file_path": "src/pages/options/OptionsApp.tsx",
+      "patch_type": "Cross-Browser Compatibility",
+      "description": "Add feature detection for Chrome APIs: runtime, storage, downloads",
+      "impact": "Better cross-browser compatibility"
+    },
+    {
+      "file_path": "src/utils/artifactUtils.ts",
+      "patch_type": "Error Handling",
+      "description": "Add error handling for async operations",
+      "impact": "Better error resilience"
+    },
+    {
+      "file_path": "src/pages/popup/PopupApp.tsx",
+      "patch_type": "Error Handling",
+      "description": "Add error handling for async operations",
+      "impact": "Better error resilience"
+    },
+    {
+      "file_path": "src/pages/options/OptionsApp.tsx",
+      "patch_type": "Error Handling",
+      "description": "Add error handling for async operations",
+      "impact": "Better error resilience"
+    },
+    {
+      "file_path": ".eslintrc.js",
+      "patch_type": "Code Style",
+      "description": "Add missing ESLint rules: indent, quotes, semi, comma-dangle, no-trailing-spaces",
+      "impact": "Consistent code formatting"
+    }
+  ],
+  "recommendations": [
+    "\ud83d\udd34 CRITICAL: Address HIGH severity security issues immediately",
+    "\ud83d\udee1\ufe0f Review extension permissions and remove unnecessary access",
+    "\ud83d\udd12 Implement proper input validation and sanitization",
+    "\u26a1 PERFORMANCE: Apply optimization patches for better performance",
+    "\ud83c\udfaf Focus on code splitting and lazy loading improvements",
+    "\ud83d\udce6 Optimize bundle size by removing unused dependencies"
+  ]
+}

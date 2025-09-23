@@ -1,0 +1,335 @@
+/* ARTIFACTOR Chrome Extension - Content Script Styles */
+/* These styles are injected into Claude.ai pages */
+
+.artifactor-highlight {
+  position: relative !important;
+  border: 2px solid #0078D4 !important;
+  border-radius: 8px !important;
+  background-color: rgba(0, 120, 212, 0.1) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.2) !important;
+}
+
+.artifactor-highlight::before {
+  content: '🚀 ARTIFACTOR' !important;
+  position: absolute !important;
+  top: -12px !important;
+  right: 8px !important;
+  background: #0078D4 !important;
+  color: white !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  z-index: 1000 !important;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.artifactor-highlight:hover {
+  border-color: #106ebe !important;
+  background-color: rgba(0, 120, 212, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+.artifactor-download-button {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  background: #0078D4 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+  cursor: pointer !important;
+  z-index: 1001 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.artifactor-download-button:hover {
+  background: #106ebe !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.artifactor-download-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.artifactor-artifact-badge {
+  position: absolute !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  background: rgba(43, 43, 43, 0.9) !important;
+  color: #CCCCCC !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', 'Roboto Mono', monospace !important;
+  z-index: 1001 !important;
+  border: 1px solid rgba(85, 85, 85, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
+  line-height: 1.2 !important;
+}
+
+/* Animation for newly detected artifacts */
+@keyframes artifactorPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 120, 212, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 120, 212, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 120, 212, 0);
+  }
+}
+
+.artifactor-highlight.artifactor-new {
+  animation: artifactorPulse 2s infinite !important;
+}
+
+/* Notification overlay for artifact detection */
+.artifactor-notification {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  background: rgba(43, 43, 43, 0.95) !important;
+  color: #FFFFFF !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+  z-index: 10000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid #555555 !important;
+  max-width: 300px !important;
+  backdrop-filter: blur(8px) !important;
+  animation: artifactorSlideIn 0.3s ease-out !important;
+}
+
+@keyframes artifactorSlideIn {
+  from {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+  }
+  to {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+}
+
+.artifactor-notification-close {
+  position: absolute !important;
+  top: 4px !important;
+  right: 8px !important;
+  background: none !important;
+  border: none !important;
+  color: #CCCCCC !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.artifactor-notification-close:hover {
+  color: #FFFFFF !important;
+}
+
+/* Floating action button for extension popup */
+.artifactor-fab {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 56px !important;
+  height: 56px !important;
+  background: #0078D4 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  z-index: 9999 !important;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4) !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.artifactor-fab:hover {
+  background: #106ebe !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 16px rgba(0, 120, 212, 0.6) !important;
+}
+
+.artifactor-fab:active {
+  transform: scale(0.95) !important;
+}
+
+/* Badge on FAB showing artifact count */
+.artifactor-fab-badge {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  background: #D13438 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 2px solid white !important;
+}
+
+/* Hide elements when extension is disabled */
+.artifactor-hidden {
+  display: none !important;
+}
+
+/* Loading spinner for artifact detection */
+.artifactor-spinner {
+  display: inline-block !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px solid #CCCCCC !important;
+  border-radius: 50% !important;
+  border-top-color: #0078D4 !important;
+  animation: artifactorSpin 1s ease-in-out infinite !important;
+}
+
+@keyframes artifactorSpin {
+  to { transform: rotate(360deg) !important; }
+}
+
+/* Tooltip for enhanced UX */
+.artifactor-tooltip {
+  position: absolute !important;
+  background: rgba(43, 43, 43, 0.95) !important;
+  color: #FFFFFF !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+  z-index: 10001 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid #555555 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s ease !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.artifactor-tooltip.artifactor-visible {
+  opacity: 1 !important;
+}
+
+/* Responsive adjustments for mobile Claude.ai */
+@media (max-width: 768px) {
+  .artifactor-download-button {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .artifactor-artifact-badge {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+  }
+
+  .artifactor-fab {
+    width: 48px !important;
+    height: 48px !important;
+    bottom: 16px !important;
+    right: 16px !important;
+    font-size: 20px !important;
+  }
+
+  .artifactor-notification {
+    top: 16px !important;
+    right: 16px !important;
+    left: 16px !important;
+    max-width: none !important;
+  }
+}
+
+/* Dark mode compatibility for Claude.ai */
+@media (prefers-color-scheme: dark) {
+  .artifactor-highlight {
+    border-color: #4FC3F7 !important;
+    background-color: rgba(79, 195, 247, 0.1) !important;
+  }
+
+  .artifactor-highlight::before {
+    background: #4FC3F7 !important;
+  }
+
+  .artifactor-download-button {
+    background: #4FC3F7 !important;
+  }
+
+  .artifactor-download-button:hover {
+    background: #29B6F6 !important;
+  }
+
+  .artifactor-fab {
+    background: #4FC3F7 !important;
+  }
+
+  .artifactor-fab:hover {
+    background: #29B6F6 !important;
+  }
+}
+
+/* Ensure proper stacking context */
+.artifactor-highlight,
+.artifactor-download-button,
+.artifactor-artifact-badge,
+.artifactor-notification,
+.artifactor-fab,
+.artifactor-tooltip {
+  isolation: isolate !important;
+}
+
+/* Prevent interference with Claude.ai's own styles */
+.artifactor-highlight * {
+  pointer-events: auto !important;
+}
+
+.artifactor-download-button,
+.artifactor-fab {
+  pointer-events: auto !important;
+}
+
+/* Accessibility improvements */
+.artifactor-download-button:focus,
+.artifactor-fab:focus {
+  outline: 2px solid #FFFFFF !important;
+  outline-offset: 2px !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .artifactor-highlight {
+    border-width: 3px !important;
+    border-color: #000000 !important;
+  }
+
+  .artifactor-download-button,
+  .artifactor-fab {
+    border: 2px solid #000000 !important;
+  }
+}

@@ -14,7 +14,16 @@ from typing import Optional, List, Dict, Any
 from .database import Base
 
 # Import collaboration models
-from .models.collaboration import *
+from .models.collaboration import (
+    CollaborationComment,
+    CollaborationActivity,
+    UserPresence,
+    CollaborationNotification,
+    CollaborationWorkspace,
+    WorkspaceMembership,
+    ArtifactCollaboration,
+    CollaborationVersion
+)
 
 class User(Base):
     """User model with authentication and authorization"""

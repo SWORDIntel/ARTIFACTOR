@@ -1,0 +1,82 @@
+{
+  "timestamp": "2025-09-23T01:51:49.076256",
+  "overall_status": "WARNING",
+  "summary": {
+    "total_tests": 9,
+    "passed": 7,
+    "failed": 0,
+    "warnings": 2,
+    "success_rate": 77.8,
+    "total_duration": 0.0
+  },
+  "test_results": [
+    {
+      "test_name": "Project Structure",
+      "status": "PASS",
+      "duration": 0.0,
+      "details": "All required files present and accounted for",
+      "error": null
+    },
+    {
+      "test_name": "Code Quality",
+      "status": "WARNING",
+      "duration": 0.0,
+      "details": "Node modules not installed - skipping ESLint validation",
+      "error": null
+    },
+    {
+      "test_name": "Build System",
+      "status": "PASS",
+      "duration": 0.0,
+      "details": "Webpack configuration complete and valid",
+      "error": null
+    },
+    {
+      "test_name": "Chrome Extension Structure",
+      "status": "PASS",
+      "duration": 0.0,
+      "details": "Manifest V3 structure valid and complete",
+      "error": null
+    },
+    {
+      "test_name": "TypeScript Compilation",
+      "status": "PASS",
+      "duration": 0.0,
+      "details": "TypeScript configuration complete and valid",
+      "error": null
+    },
+    {
+      "test_name": "Backend Integration",
+      "status": "WARNING",
+      "duration": 0.001,
+      "details": "ARTIFACTOR backend not running - cannot test integration",
+      "error": null
+    },
+    {
+      "test_name": "Performance Characteristics",
+      "status": "PASS",
+      "duration": 0.001,
+      "details": "Performance analysis: 0 warnings, 0 issues",
+      "error": null
+    },
+    {
+      "test_name": "Security Features",
+      "status": "PASS",
+      "duration": 0.001,
+      "details": "Security analysis: 0 warnings, 0 critical issues",
+      "error": null
+    },
+    {
+      "test_name": "Cross-Platform Compatibility",
+      "status": "PASS",
+      "duration": 0.001,
+      "details": "No cross-platform compatibility issues detected",
+      "error": null
+    }
+  ],
+  "recommendations": [
+    "\ud83d\udfe1 RECOMMENDED: Review warning tests for optimization",
+    "  - Consider Code Quality: Node modules not installed - skipping ESLint validation",
+    "  - Consider Backend Integration: ARTIFACTOR backend not running - cannot test integration"
+  ]
+}

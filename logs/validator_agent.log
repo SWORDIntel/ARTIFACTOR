@@ -1,0 +1,40 @@
+2025-09-23 00:26:40,473 - VALIDATOR_Agent - INFO - 🚀 Starting comprehensive validation for ARTIFACTOR v3.0.0
+2025-09-23 00:26:40,473 - VALIDATOR_Agent - INFO - 🔍 Running security validation...
+2025-09-23 00:26:40,473 - VALIDATOR_Agent - INFO - 🔒 Starting security validation...
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - INFO - ✅ Security validation script passed
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - INFO - ✅ Security documentation found: PATCHER_SECURITY_IMPLEMENTATION_REPORT.md
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - INFO - ✅ Security documentation found: SECURITY_IMPLEMENTATION_COMPLETE.md
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - ERROR - ❌ Security validation FAILED
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - INFO - 🔍 Running performance validation...
+2025-09-23 00:26:40,493 - VALIDATOR_Agent - INFO - ⚡ Starting performance validation...
+2025-09-23 00:26:42,655 - VALIDATOR_Agent - ERROR - ❌ Performance test failed: performance_regression_test.py
+2025-09-23 00:26:46,098 - VALIDATOR_Agent - INFO - ✅ Performance test passed: test_ml_performance.py
+2025-09-23 00:26:46,172 - VALIDATOR_Agent - INFO - ✅ Performance test passed: performance_monitor.py
+2025-09-23 00:26:46,172 - VALIDATOR_Agent - INFO - ✅ Performance report found: PERFORMANCE_OPTIMIZATION_REPORT.md
+2025-09-23 00:26:46,172 - VALIDATOR_Agent - INFO - ✅ Performance report found: OPTIMIZER_PERFORMANCE_ANALYSIS.md
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Performance validation PASSED
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - 🔍 Running documentation validation...
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - 📚 Starting documentation validation...
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Core documentation validated: README.md
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Core documentation validated: CLAUDE.md
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Core documentation validated: ARTIFACTOR_V3_TECHNICAL_ARCHITECTURE.md
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Core documentation validated: PRODUCTION_DEPLOYMENT_CHECKLIST.md
+2025-09-23 00:26:46,173 - VALIDATOR_Agent - INFO - ✅ Core documentation validated: INFRASTRUCTURE_DEPLOYMENT_GUIDE.md
+2025-09-23 00:26:46,177 - VALIDATOR_Agent - INFO - ✅ Command functional: ./artifactor --help
+2025-09-23 00:26:46,945 - VALIDATOR_Agent - INFO - ✅ Command functional: ./artifactor status
+2025-09-23 00:26:46,976 - VALIDATOR_Agent - INFO - ✅ Command functional: python3 claude-artifact-launcher.py --help
+2025-09-23 00:26:46,985 - VALIDATOR_Agent - WARNING - ⚠️ Setup procedure may have issues
+2025-09-23 00:26:46,985 - VALIDATOR_Agent - INFO - ✅ Documentation validation PASSED
+2025-09-23 00:26:46,986 - VALIDATOR_Agent - INFO - 🔍 Running integration validation...
+2025-09-23 00:26:46,986 - VALIDATOR_Agent - INFO - 🔧 Starting integration validation...
+2025-09-23 00:27:47,046 - VALIDATOR_Agent - ERROR - ❌ Service startup timed out: claude-artifact-coordinator.py
+2025-09-23 00:27:47,207 - VALIDATOR_Agent - ERROR - ❌ Service startup failed: claude-artifact-downloader.py
+2025-09-23 00:27:47,237 - VALIDATOR_Agent - INFO - ✅ Service startup test passed: claude-artifact-launcher.py
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - INFO - ✅ Agent coordination test passed
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - INFO - ℹ️ Optional configuration file not found: docker/Dockerfile
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - INFO - ℹ️ Optional configuration file not found: k8s/deployment.yaml
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - INFO - ✅ Configuration file found: backend/requirements.txt
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - INFO - ✅ Configuration file found: frontend/package.json
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - ERROR - ❌ Integration validation FAILED
+2025-09-23 00:27:48,755 - VALIDATOR_Agent - ERROR - ❌ VALIDATION FAILED - System not production ready (50.0% success rate)
+2025-09-23 00:27:48,756 - VALIDATOR_Agent - INFO - 📊 Validation report generated: /home/john/GITHUB/ARTIFACTOR/VALIDATOR_FINAL_REPORT.md

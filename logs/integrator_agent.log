@@ -1,0 +1,48 @@
+2025-09-23 00:28:02,941 - INTEGRATOR_Agent - INFO - 🔗 Starting comprehensive integration testing for ARTIFACTOR v3.0.0
+2025-09-23 00:28:02,941 - INTEGRATOR_Agent - INFO - 🔍 Running service_integration integration testing...
+2025-09-23 00:28:02,941 - INTEGRATOR_Agent - INFO - 🔗 Starting service integration testing...
+2025-09-23 00:28:02,941 - INTEGRATOR_Agent - INFO - 📁 Frontend and backend directories found
+2025-09-23 00:28:02,941 - INTEGRATOR_Agent - INFO - ✅ Frontend-backend integration configuration detected
+2025-09-23 00:28:02,960 - INTEGRATOR_Agent - ERROR - ❌ Core service integration test failed: claude-artifact-coordinator.py
+2025-09-23 00:28:02,978 - INTEGRATOR_Agent - ERROR - ❌ Core service integration test failed: claude-artifact-downloader.py
+2025-09-23 00:28:02,995 - INTEGRATOR_Agent - ERROR - ❌ Core service integration test failed: claude-artifact-launcher.py
+2025-09-23 00:28:03,003 - INTEGRATOR_Agent - INFO - ℹ️ API endpoint not accessible (expected if not running): -s
+2025-09-23 00:28:03,009 - INTEGRATOR_Agent - INFO - ℹ️ API endpoint not accessible (expected if not running): -s
+2025-09-23 00:28:03,009 - INTEGRATOR_Agent - INFO - ✅ Dependency file found: frontend/package.json
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - ✅ Dependency file found: backend/requirements.txt
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - ERROR - ❌ Service integration testing FAILED
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - 🔍 Running agent_coordination integration testing...
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - 🤖 Starting agent coordination testing...
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - ✅ Agent file found: claude-artifact-coordinator.py
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - ✅ Agent file found: test-agent-coordination.py
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - ✅ Agent file found: agents/validator_agent.py
+2025-09-23 00:28:03,010 - INTEGRATOR_Agent - INFO - ✅ Agent file found: agents/integrator_agent.py
+2025-09-23 00:28:04,503 - INTEGRATOR_Agent - INFO - ✅ Agent coordination test PASSED
+2025-09-23 00:28:04,503 - INTEGRATOR_Agent - INFO - ✅ Tandem operation functionality detected
+2025-09-23 00:28:04,524 - INTEGRATOR_Agent - ERROR - ❌ Agent syntax validation failed: validator_agent.py
+2025-09-23 00:28:04,544 - INTEGRATOR_Agent - ERROR - ❌ Agent syntax validation failed: integrator_agent.py
+2025-09-23 00:28:04,545 - INTEGRATOR_Agent - INFO - ✅ Agent communication protocols detected in coordinator
+2025-09-23 00:28:04,545 - INTEGRATOR_Agent - INFO - ✅ Agent coordination testing PASSED
+2025-09-23 00:28:04,545 - INTEGRATOR_Agent - INFO - 🔍 Running deployment_pipeline integration testing...
+2025-09-23 00:28:04,545 - INTEGRATOR_Agent - INFO - 🚀 Starting deployment pipeline testing...
+2025-09-23 00:28:04,548 - INTEGRATOR_Agent - INFO - ✅ Setup script validation passed: setup-env.sh
+2025-09-23 00:28:04,549 - INTEGRATOR_Agent - INFO - ✅ Setup script validation passed: scripts/install-sword-intelligence-branding.sh
+2025-09-23 00:28:04,552 - INTEGRATOR_Agent - INFO - ✅ Setup script validation passed: artifactor
+2025-09-23 00:28:04,590 - INTEGRATOR_Agent - INFO - ✅ Environment setup validation passed
+2025-09-23 00:28:04,590 - INTEGRATOR_Agent - INFO - ✅ Deployment pipeline testing PASSED
+2025-09-23 00:28:04,590 - INTEGRATOR_Agent - INFO - 🔍 Running configuration_consistency integration testing...
+2025-09-23 00:28:04,590 - INTEGRATOR_Agent - INFO - ⚙️ Starting configuration consistency testing...
+2025-09-23 00:28:04,592 - INTEGRATOR_Agent - INFO - ✅ Version consistency detected across files
+2025-09-23 00:28:04,592 - INTEGRATOR_Agent - INFO - ✅ Dependency file parsed: backend/requirements.txt
+2025-09-23 00:28:04,592 - INTEGRATOR_Agent - INFO - ✅ Dependency file parsed: frontend/package.json
+2025-09-23 00:28:04,592 - INTEGRATOR_Agent - INFO - ✅ Configuration file validated: backend/config.py
+2025-09-23 00:28:04,593 - INTEGRATOR_Agent - ERROR - ❌ Configuration consistency testing FAILED
+2025-09-23 00:28:04,593 - INTEGRATOR_Agent - INFO - 🔍 Running end_to_end_workflows integration testing...
+2025-09-23 00:28:04,593 - INTEGRATOR_Agent - INFO - 🔄 Starting end-to-end workflow testing...
+2025-09-23 00:28:04,623 - INTEGRATOR_Agent - INFO - ✅ Launcher workflow test passed
+2025-09-23 00:28:52,935 - INTEGRATOR_Agent - INFO - ✅ Coordinator workflow test passed
+2025-09-23 00:28:53,088 - INTEGRATOR_Agent - INFO - ✅ Downloader workflow test passed
+2025-09-23 00:28:53,669 - INTEGRATOR_Agent - INFO - ✅ Full pipeline test passed
+2025-09-23 00:28:53,669 - INTEGRATOR_Agent - INFO - ✅ End-to-end workflow testing PASSED
+2025-09-23 00:28:53,669 - INTEGRATOR_Agent - ERROR - ❌ INTEGRATION TESTING FAILED - System integration not ready (60.0% success rate)
+2025-09-23 00:28:53,669 - INTEGRATOR_Agent - INFO - 📊 Integration report generated: /home/john/GITHUB/ARTIFACTOR/INTEGRATOR_FINAL_REPORT.md

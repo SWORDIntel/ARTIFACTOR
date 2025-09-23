@@ -95,33 +95,81 @@ detect_repo_info() {
     echo "CONTACT_EMAIL=${repo_name}@swordintelligence.airforce"
 }
 
-# Download hook script
+# Enhanced download with retry logic and validation
 download_hook_script() {
     local target_dir="$1"
     local target_file="$target_dir/$HOOK_SCRIPT_NAME"
+    local retries=3
+    local timeout=30
 
     log_step "Downloading SWORD Intelligence contact hook script"
 
     # Create scripts directory if it doesn't exist
     mkdir -p "$target_dir"
 
-    # Try to download from GitHub
+    # Download function with retry logic
+    download_with_retry() {
+        local url="$1"
+        local output="$2"
+        local tool="$3"
+
+        for ((i=1; i<=retries; i++)); do
+            log_info "Download attempt $i/$retries using $tool"
+
+            case "$tool" in
+                "curl")
+                    if curl -fsSL --connect-timeout 10 --max-time "$timeout" "$url" -o "$output"; then
+                        return 0
+                    fi
+                    ;;
+                "wget")
+                    if wget --timeout="$timeout" --tries=1 -q "$url" -O "$output"; then
+                        return 0
+                    fi
+                    ;;
+            esac
+
+            if [[ $i -lt $retries ]]; then
+                local wait_time=$((i * 2))
+                log_info "Waiting ${wait_time}s before retry..."
+                sleep "$wait_time"
+            fi
+        done
+        return 1
+    }
+
+    # Try curl first, then wget
+    local download_success=false
     if command -v curl >/dev/null 2>&1; then
-        if curl -fsSL "$HOOK_SCRIPT_URL" -o "$target_file"; then
+        if download_with_retry "$HOOK_SCRIPT_URL" "$target_file" "curl"; then
+            download_success=true
             log_success "Downloaded hook script using curl"
-        else
-            log_warning "Failed to download from GitHub, using local fallback"
-            return 1
         fi
-    elif command -v wget >/dev/null 2>&1; then
-        if wget -q "$HOOK_SCRIPT_URL" -O "$target_file"; then
+    fi
+
+    if [[ "$download_success" == "false" ]] && command -v wget >/dev/null 2>&1; then
+        if download_with_retry "$HOOK_SCRIPT_URL" "$target_file" "wget"; then
+            download_success=true
             log_success "Downloaded hook script using wget"
-        else
-            log_warning "Failed to download from GitHub, using local fallback"
-            return 1
         fi
-    else
-        log_warning "Neither curl nor wget available, using local fallback"
+    fi
+
+    if [[ "$download_success" == "false" ]]; then
+        log_warning "Failed to download from GitHub after $retries attempts, using local fallback"
+        return 1
+    fi
+
+    # Validate downloaded file
+    if [[ ! -s "$target_file" ]]; then
+        log_error "Downloaded file is empty or invalid"
+        rm -f "$target_file"
+        return 1
+    fi
+
+    # Basic content validation
+    if ! grep -q "SWORD Intelligence" "$target_file"; then
+        log_error "Downloaded file does not appear to be the correct script"
+        rm -f "$target_file"
         return 1
     fi
 
@@ -400,9 +448,18 @@ main() {
     local target_scripts_dir="$REPO_ROOT/$SCRIPTS_DIR"
     local hook_script_path="$target_scripts_dir/$HOOK_SCRIPT_NAME"
 
-    # Download or create hook script
+    # Download or create hook script with validation
     if ! download_hook_script "$target_scripts_dir"; then
+        log_step "Creating local fallback hook script"
         create_local_hook_script "$hook_script_path"
+
+        # Validate local script creation
+        if [[ ! -f "$hook_script_path" ]] || [[ ! -x "$hook_script_path" ]]; then
+            log_error "Failed to create local hook script"
+            exit 1
+        fi
+
+        log_success "Local hook script created successfully"
     fi
 
     # Install git hooks

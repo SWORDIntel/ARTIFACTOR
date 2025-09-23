@@ -1,0 +1,523 @@
+# ARTIFACTOR v3.0 - Secure Docker Compose Configuration
+# Production-ready configuration with comprehensive security measures
+
+version: '3.8'
+
+networks:
+  artifactor_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: artifactor0
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.driver.mtu: 1500
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/16
+          gateway: 172.21.0.1
+    internal: false
+    attachable: false
+
+# Secure external secrets management
+secrets:
+  postgres_user:
+    external: true
+  postgres_password:
+    external: true
+  postgres_db:
+    external: true
+  redis_password:
+    external: true
+  jwt_secret_key:
+    external: true
+  encryption_key:
+    external: true
+
+services:
+  # PostgreSQL Database with Enhanced Security
+  postgres:
+    image: postgres:15-alpine
+    container_name: artifactor_postgres_secure
+    environment:
+      # Use secrets instead of environment variables
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB_FILE: /run/secrets/postgres_db
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    secrets:
+      - postgres_user
+      - postgres_password
+      - postgres_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./init/postgres-secure:/docker-entrypoint-initdb.d:ro
+    ports:
+      # No external port exposure in production
+      - "127.0.0.1:5432:5432"
+    networks:
+      - artifactor_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    user: "999:999"  # postgres user
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_user) -d $(cat /run/secrets/postgres_db)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Cache with Authentication and Encryption
+  redis:
+    image: redis:7-alpine
+    container_name: artifactor_redis_secure
+    command: >
+      sh -c "
+        redis-server
+        --requirepass $$(cat /run/secrets/redis_password)
+        --appendonly yes
+        --appendfsync everysec
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+        --tcp-keepalive 300
+        --timeout 300
+        --databases 1
+        --save 900 1
+        --save 300 10
+        --save 60 10000
+        --rdbcompression yes
+        --rdbchecksum yes
+        --stop-writes-on-bgsave-error yes
+        --dir /data
+        --tls-port 6380
+        --port 0
+        --tls-cert-file /etc/ssl/certs/redis.crt
+        --tls-key-file /etc/ssl/private/redis.key
+        --tls-ca-cert-file /etc/ssl/certs/ca.crt
+        --tls-protocols TLSv1.2,TLSv1.3
+      "
+    secrets:
+      - redis_password
+    volumes:
+      - redis_data:/data
+      - ./ssl/redis:/etc/ssl:ro
+    ports:
+      # TLS-only Redis
+      - "127.0.0.1:6380:6380"
+    networks:
+      - artifactor_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: "999:999"  # redis user
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "redis-cli", "--tls", "--cert", "/etc/ssl/certs/redis.crt", "--key", "/etc/ssl/private/redis.key", "--cacert", "/etc/ssl/certs/ca.crt", "-p", "6380", "-a", "$(cat /run/secrets/redis_password)", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.3'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Secure FastAPI Backend
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.secure
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: artifactor/backend:secure
+    container_name: artifactor_backend_secure
+    environment:
+      # Security-focused environment variables
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - SECURITY_LOG_ENABLED=true
+      - RATE_LIMIT_ENABLED=true
+      - ENABLE_HSTS=true
+      - ENABLE_CSP=true
+      - ENABLE_JWT_BLACKLIST=true
+      - PLUGIN_SANDBOX_ENABLED=true
+      - VIRUS_SCANNING_ENABLED=true
+      - AUDIT_LOG_ENABLED=true
+      # Connection strings with secrets
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - REDIS_URL_FILE=/run/secrets/redis_url
+      - JWT_SECRET_KEY_FILE=/run/secrets/jwt_secret_key
+      - ENCRYPTION_KEY_FILE=/run/secrets/encryption_key
+    secrets:
+      - source: postgres_user
+        target: /run/secrets/postgres_user
+        mode: 0400
+      - source: postgres_password
+        target: /run/secrets/postgres_password
+        mode: 0400
+      - source: postgres_db
+        target: /run/secrets/postgres_db
+        mode: 0400
+      - source: redis_password
+        target: /run/secrets/redis_password
+        mode: 0400
+      - source: jwt_secret_key
+        target: /run/secrets/jwt_secret_key
+        mode: 0400
+      - source: encryption_key
+        target: /run/secrets/encryption_key
+        mode: 0400
+    volumes:
+      # Read-only application code
+      - ../backend/src:/app/src:ro
+      - ../backend/requirements.txt:/app/requirements.txt:ro
+      # Writable volumes with security
+      - upload_data:/app/uploads
+      - logs_data:/app/logs
+      - quarantine_data:/app/quarantine
+      - backups_data:/app/backups
+      # Security configurations
+      - ./security:/app/security:ro
+      - ./ssl:/app/ssl:ro
+    ports:
+      # Internal only - accessed through reverse proxy
+      - "127.0.0.1:8000:8000"
+    networks:
+      - artifactor_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined  # Allow for plugin sandboxing
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/tmp:noexec,nosuid,size=50m
+    user: "1000:1000"  # non-root user
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE  # For port 8000
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.2'
+    command: >
+      sh -c "
+        # Wait for dependencies
+        ./wait-for-it.sh postgres:5432 --timeout=60 --strict --
+        ./wait-for-it.sh redis:6380 --timeout=60 --strict --
+        # Run security checks
+        python security/pre_start_checks.py &&
+        # Start application with security monitoring
+        python -m uvicorn main:app
+          --host 0.0.0.0
+          --port 8000
+          --workers 4
+          --worker-class uvicorn.workers.UvicornWorker
+          --access-log
+          --log-config logging.conf
+          --ssl-keyfile /app/ssl/server.key
+          --ssl-certfile /app/ssl/server.crt
+          --ssl-ca-certs /app/ssl/ca.crt
+          --ssl-ciphers ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--cacert", "/app/ssl/ca.crt", "https://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Secure React Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.secure
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+        - NODE_ENV=production
+    image: artifactor/frontend:secure
+    container_name: artifactor_frontend_secure
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://api.artifactor.local/api
+      - REACT_APP_WS_URL=wss://api.artifactor.local/ws
+      - GENERATE_SOURCEMAP=false
+      - DISABLE_ESLINT_PLUGIN=true
+    volumes:
+      # Static files only - no source code access
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - ./ssl:/etc/ssl:ro
+    networks:
+      - artifactor_network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+      - /var/cache/nginx:noexec,nosuid,size=50m
+      - /var/run:noexec,nosuid,size=10m
+    user: "101:101"  # nginx user
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--cacert", "/etc/ssl/ca.crt", "https://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Secure Nginx Reverse Proxy with WAF
+  nginx:
+    image: nginx:alpine-security  # Custom security-hardened image
+    container_name: artifactor_nginx_secure
+    volumes:
+      - ./nginx/nginx-secure.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/security:/etc/nginx/security:ro
+      - ./ssl:/etc/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+      - upload_data:/var/www/uploads:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - artifactor_network
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+      - /var/cache/nginx:noexec,nosuid,size=100m
+      - /var/run:noexec,nosuid,size=10m
+    user: "101:101"  # nginx user
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--cacert", "/etc/ssl/ca.crt", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Security Monitoring and Log Aggregation
+  security_monitor:
+    build:
+      context: ./security-monitor
+      dockerfile: Dockerfile
+    image: artifactor/security-monitor:latest
+    container_name: artifactor_security_monitor
+    environment:
+      - LOG_LEVEL=INFO
+      - ALERT_WEBHOOK_URL_FILE=/run/secrets/alert_webhook_url
+      - SMTP_PASSWORD_FILE=/run/secrets/smtp_password
+    secrets:
+      - alert_webhook_url
+      - smtp_password
+    volumes:
+      - logs_data:/app/logs:ro
+      - ./security-monitor/config:/app/config:ro
+    networks:
+      - artifactor_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ClamAV Antivirus Scanner
+  clamav:
+    image: clamav/clamav:stable
+    container_name: artifactor_clamav
+    volumes:
+      - clamav_data:/var/lib/clamav
+      - quarantine_data:/scan:ro
+    networks:
+      - artifactor_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    user: "100:101"  # clamav user
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.1'
+    healthcheck:
+      test: ["CMD", "clamdscan", "--version"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 300s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Secure named volumes with encryption at rest
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/postgres
+      o: bind,uid=999,gid=999,mode=700
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/redis
+      o: bind,uid=999,gid=999,mode=700
+  upload_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/uploads
+      o: bind,uid=1000,gid=1000,mode=750
+  logs_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/logs
+      o: bind,uid=1000,gid=1000,mode=750
+  quarantine_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/quarantine
+      o: bind,uid=1000,gid=1000,mode=700
+  backups_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/backups
+      o: bind,uid=1000,gid=1000,mode=700
+  clamav_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/artifactor/clamav
+      o: bind,uid=100,gid=101,mode=750

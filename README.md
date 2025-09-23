@@ -169,11 +169,38 @@ docker-compose up -d
 # Downloads: Dockerfile, docker-compose.yml, nginx.conf, .env.example
 ```
 
+#### **🌐 Chrome Extension Method (Browser Integration)**
+```bash
+# Install the Chrome extension for seamless browser integration
+```
+1. **For Development/Testing:**
+   - Navigate to `chrome://extensions/`
+   - Enable "Developer mode" (toggle in top-right)
+   - Click "Load unpacked" and select `chrome-extension/dist/` folder
+   - Pin the ARTIFACTOR extension to your toolbar
+
+2. **For Production Use:**
+   - Install from Chrome Web Store (coming soon)
+   - Or use the packaged `.crx` file from releases
+
+3. **Usage:**
+   - Visit any Claude.ai conversation with artifacts
+   - Click the ARTIFACTOR extension icon (shows artifact count)
+   - Configure download settings in extension options
+   - Download individual artifacts or batch download all
+
+4. **Download Location:**
+   - **Default**: Downloads to your Chrome downloads folder in an "ARTIFACTOR" subfolder
+   - **Configurable**: Set custom subfolder name in extension options
+   - **Smart Naming**: Uses timestamp and artifact type for organization
+   - **No File Conflicts**: Automatically handles duplicate names with unique suffixes
+
 ### **💡 Pro Tips**
 - **Use descriptive output folders**: `--output "./project-name-$(date +%Y%m%d)"`
 - **Preview before downloading**: Check the conversation for file types first
 - **Batch processing**: Save multiple Claude.ai URLs in a text file for bulk downloads
 - **Version control**: ARTIFACTOR preserves original code structure and formatting
+- **Browser Extension**: Install the Chrome extension for one-click downloads directly from Claude.ai
 
 ## 🚀 Production Quick Start
 
@@ -307,6 +334,40 @@ docker-compose -f docker/docker-compose.yml ps
 python3 claude-artifact-venv-manager.py --setup
 python3 claude-artifact-launcher.py --coordinator
 ```
+
+### 🌐 Chrome Extension Installation
+
+#### Option 1: Development Installation (Load Unpacked)
+```bash
+# 1. Build the extension
+cd chrome-extension
+npm install
+npm run build
+
+# 2. Load in Chrome
+# - Open chrome://extensions/
+# - Enable "Developer mode" (toggle top-right)
+# - Click "Load unpacked"
+# - Select the 'dist/' folder that was created by the build
+```
+
+#### Option 2: Package for Distribution
+```bash
+# Create a packaged .crx file
+cd chrome-extension
+npm run package
+
+# This creates a .crx file in the packages/ directory
+# Install by dragging the .crx file into chrome://extensions/
+```
+
+#### Chrome Extension Features:
+- **Automatic Detection**: Detects Claude.ai artifacts on page load
+- **One-Click Downloads**: Download single or multiple artifacts
+- **Smart File Naming**: Timestamp + artifact type organization
+- **Download Location**: Configurable subfolder in Chrome's downloads directory
+- **Background Sync**: Optional backend integration for advanced features
+- **Dark Theme**: Matches ARTIFACTOR's professional dark theme
 
 ### 🔒 Environment Configuration
 Create `.env` file for customization:

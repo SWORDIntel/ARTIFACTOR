@@ -5,7 +5,12 @@ Configuration settings for ARTIFACTOR v3.0 Backend
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
+import secrets
+import logging
 from pathlib import Path
+
+# Setup logging for security warnings
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
@@ -17,16 +22,32 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # Database settings
-    DATABASE_URL: str = "postgresql://artifactor:artifactor@localhost/artifactor_v3"
-    DATABASE_POOL_SIZE: int = 10
-    DATABASE_MAX_OVERFLOW: int = 20
+    # Database settings - NO DEFAULT CREDENTIALS
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    DATABASE_POOL_SIZE: int = int(os.getenv("DATABASE_POOL_SIZE", "10"))
+    DATABASE_MAX_OVERFLOW: int = int(os.getenv("DATABASE_MAX_OVERFLOW", "20"))
+    DATABASE_SSL_MODE: str = os.getenv("DATABASE_SSL_MODE", "require")
+    DATABASE_TIMEOUT: int = int(os.getenv("DATABASE_TIMEOUT", "30"))
 
-    # Security settings
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # Security settings - NEVER use defaults in production
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+
+    # JWT Security enhancements
+    JWT_ISSUER: str = os.getenv("JWT_ISSUER", "ARTIFACTOR-v3")
+    JWT_AUDIENCE: str = os.getenv("JWT_AUDIENCE", "artifactor-api")
+    ENABLE_JWT_BLACKLIST: bool = os.getenv("ENABLE_JWT_BLACKLIST", "true").lower() == "true"
+
+    # Password security
+    PASSWORD_MIN_LENGTH: int = int(os.getenv("PASSWORD_MIN_LENGTH", "12"))
+    PASSWORD_REQUIRE_SPECIAL: bool = os.getenv("PASSWORD_REQUIRE_SPECIAL", "true").lower() == "true"
+    BCRYPT_ROUNDS: int = int(os.getenv("BCRYPT_ROUNDS", "12"))
+
+    # Session security
+    SESSION_TIMEOUT_MINUTES: int = int(os.getenv("SESSION_TIMEOUT_MINUTES", "60"))
+    MAX_CONCURRENT_SESSIONS: int = int(os.getenv("MAX_CONCURRENT_SESSIONS", "3"))
 
     # CORS settings
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
