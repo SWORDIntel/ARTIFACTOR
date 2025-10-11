@@ -82,6 +82,7 @@ class ConcurrentDownloader:
 
         # Active downloads tracking
         self.active_downloads: Dict[str, DownloadTask] = {}
+        self.download_results: Dict[str, DownloadResult] = {}  # Track completed results
         self.semaphore = asyncio.Semaphore(max_concurrent)
 
         # HTTP session management
@@ -299,6 +300,10 @@ class ConcurrentDownloader:
             # Notify progress callbacks
             await self._notify_progress_callbacks(result)
 
+            # Store result for retrieval
+            async with self._lock:
+                self.download_results[task_id] = result
+
             return result
 
         finally:
@@ -408,20 +413,40 @@ class ConcurrentDownloader:
             raise
 
     async def _wait_for_completion(self, task: DownloadTask) -> DownloadResult:
-        """Wait for task completion"""
+        """Wait for task completion and retrieve result"""
         task_id = self._generate_task_id(task)
+        max_wait_time = task.timeout * (task.max_retries + 1) + 10  # Extra buffer
+
+        start_wait = time.time()
 
         # Poll for completion
         while True:
             async with self._lock:
+                # Check if result is available
+                if task_id in self.download_results:
+                    result = self.download_results.pop(task_id)
+                    return result
+
+                # Check if task is no longer active but no result
                 if task_id not in self.active_downloads:
-                    # Task completed, try to find result
-                    break
+                    # Task was removed but no result - likely an error
+                    logger.warning(f"Task {task_id} completed but no result found")
+                    return DownloadResult(
+                        task=task,
+                        success=False,
+                        error="Task completed but result not found"
+                    )
+
+            # Check timeout
+            if time.time() - start_wait > max_wait_time:
+                logger.error(f"Timeout waiting for task {task_id} completion")
+                return DownloadResult(
+                    task=task,
+                    success=False,
+                    error=f"Timeout waiting for completion after {max_wait_time}s"
+                )
 
             await asyncio.sleep(0.1)
-
-        # Return placeholder result (in real implementation, use proper result tracking)
-        return DownloadResult(task=task, success=False, error="Not implemented")
 
     async def _notify_progress_callbacks(self, result: DownloadResult):
         """Notify all progress callbacks"""

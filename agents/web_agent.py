@@ -679,12 +679,97 @@ class WebAgent:
         }
 
     def _analyze_repository_url(self, repository_url: str) -> Dict[str, Any]:
-        """Analyze repository from GitHub URL (if accessible)"""
-        # Placeholder for repository URL analysis
-        # In a real implementation, this would use GitHub API
+        """Analyze repository from GitHub URL with intelligent fallbacks"""
+        patterns = []
+        confidence_scores = {}
+
+        try:
+            # Parse GitHub URL to extract owner and repo
+            parsed_url = urlparse(repository_url)
+            path_parts = [p for p in parsed_url.path.split('/') if p]
+
+            if len(path_parts) >= 2 and 'github.com' in parsed_url.netloc:
+                owner, repo = path_parts[0], path_parts[1]
+
+                # Strategy 1: Try GitHub API (without authentication for public repos)
+                try:
+                    api_url = f"https://api.github.com/repos/{owner}/{repo}"
+                    response = requests.get(api_url, timeout=10)
+
+                    if response.status_code == 200:
+                        repo_data = response.json()
+
+                        # Analyze repo metadata
+                        language = repo_data.get('language', '').lower()
+                        topics = repo_data.get('topics', [])
+                        description = (repo_data.get('description', '') or '').lower()
+
+                        # Detect patterns based on metadata
+                        for pattern_name, pattern_data in self.github_patterns_db.items():
+                            score = 0.0
+                            indicators = pattern_data.get('indicators', [])
+
+                            # Check language match
+                            if language:
+                                for indicator in indicators:
+                                    if indicator in language:
+                                        score += 0.3
+
+                            # Check topics
+                            for topic in topics:
+                                for indicator in indicators:
+                                    if indicator in topic.lower():
+                                        score += 0.2
+
+                            # Check description
+                            for indicator in indicators:
+                                if indicator in description:
+                                    score += 0.1
+
+                            if score > 0:
+                                confidence_scores[pattern_name] = min(score, 1.0)
+                                patterns.append(GitHubPattern(
+                                    framework=pattern_name,
+                                    confidence=score,
+                                    indicators=indicators,
+                                    file_patterns=pattern_data['file_patterns'],
+                                    directory_structure={},
+                                    community_score=0.0
+                                ))
+
+                        self.logger.info(f"Successfully analyzed GitHub repo: {owner}/{repo}")
+
+                except requests.RequestException as e:
+                    self.logger.warning(f"GitHub API request failed: {e}, trying fallback")
+
+                # Strategy 2: Fallback - analyze repo URL structure
+                if not patterns:
+                    # Extract clues from repo name
+                    repo_name_lower = repo.lower()
+                    for pattern_name, pattern_data in self.github_patterns_db.items():
+                        indicators = pattern_data.get('indicators', [])
+                        matches = sum(1 for ind in indicators if ind in repo_name_lower)
+
+                        if matches > 0:
+                            confidence = (matches / len(indicators)) * 0.5  # Lower confidence for URL analysis
+                            confidence_scores[pattern_name] = confidence
+                            patterns.append(GitHubPattern(
+                                framework=pattern_name,
+                                confidence=confidence,
+                                indicators=indicators,
+                                file_patterns=pattern_data['file_patterns'],
+                                directory_structure={},
+                                community_score=0.0
+                            ))
+
+                    self.logger.info(f"Used fallback URL analysis for {owner}/{repo}")
+
+        except Exception as e:
+            self.logger.error(f"Repository URL analysis failed: {e}")
+
         return {
-            'patterns': [],
-            'confidence_scores': {}
+            'patterns': patterns,
+            'confidence_scores': confidence_scores
         }
 
     def _calculate_overall_confidence(self, confidence_scores: Dict[str, float]) -> float:
@@ -711,14 +796,116 @@ class WebAgent:
         return max(confidence_scores.items(), key=lambda x: x[1])[0]
 
     def _fetch_community_standards(self, framework: str) -> Dict[str, Any]:
-        """Fetch community standards for specific framework"""
-        # Placeholder for community standards fetching
-        # In a real implementation, this might query APIs or databases
-        return {
+        """Fetch and aggregate community standards for specific framework"""
+        standards = {
             'last_updated': datetime.now().isoformat(),
-            'source': 'internal_database',
-            'standards': self.community_standards
+            'source': 'aggregated',
+            'standards': {},
+            'framework_specific': {},
+            'best_practices': [],
+            'common_patterns': {}
         }
+
+        try:
+            # Load base community standards
+            standards['standards'] = self.community_standards.copy()
+
+            # Add framework-specific standards if available
+            if framework in self.framework_conventions:
+                framework_data = self.framework_conventions[framework]
+                standards['framework_specific'] = {
+                    'recommended_structure': framework_data.get('recommended_structure', {}),
+                    'naming_conventions': framework_data.get('naming_conventions', {}),
+                    'best_practices': framework_data.get('best_practices', [])
+                }
+                standards['best_practices'] = framework_data.get('best_practices', [])
+
+            # Add common patterns from pattern database
+            for pattern_name, pattern_data in self.github_patterns_db.items():
+                if framework.lower() in pattern_name.lower():
+                    standards['common_patterns'][pattern_name] = {
+                        'file_patterns': pattern_data.get('file_patterns', []),
+                        'directory_patterns': pattern_data.get('directory_patterns', []),
+                        'config_files': pattern_data.get('config_files', []),
+                        'structure_score': pattern_data.get('structure_score', 0.0)
+                    }
+
+            # Aggregate industry best practices
+            standards['industry_standards'] = self._aggregate_industry_standards(framework)
+
+            # Add quality metrics thresholds
+            standards['quality_thresholds'] = {
+                'test_coverage': 0.8,
+                'documentation_completeness': 0.9,
+                'code_organization': 0.85,
+                'ci_cd_integration': 0.7,
+                'security_compliance': 0.9
+            }
+
+            # Add recent updates (simulated - in production would fetch from external sources)
+            standards['recent_updates'] = {
+                'last_check': datetime.now().isoformat(),
+                'updates_available': False,
+                'version': '1.0.0'
+            }
+
+            self.logger.info(f"Successfully fetched community standards for {framework}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to fetch community standards for {framework}: {e}")
+            # Return minimal standards on error
+            standards['standards'] = self.community_standards
+
+        return standards
+
+    def _aggregate_industry_standards(self, framework: str) -> Dict[str, Any]:
+        """Aggregate industry-standard best practices for framework"""
+        industry_standards = {
+            'testing': {
+                'required': True,
+                'frameworks': [],
+                'min_coverage': 0.8
+            },
+            'documentation': {
+                'required': True,
+                'formats': ['README.md', 'API docs', 'inline comments'],
+                'completeness_threshold': 0.9
+            },
+            'version_control': {
+                'required': True,
+                'branching_strategy': 'gitflow or trunk-based',
+                'commit_conventions': 'conventional commits'
+            },
+            'code_quality': {
+                'linting': True,
+                'formatting': True,
+                'type_checking': framework in ['typescript', 'python']
+            },
+            'security': {
+                'dependency_scanning': True,
+                'vulnerability_checks': True,
+                'secure_coding_practices': True
+            },
+            'performance': {
+                'optimization_required': True,
+                'monitoring': True,
+                'caching_strategy': True
+            }
+        }
+
+        # Framework-specific additions
+        if framework == 'react':
+            industry_standards['testing']['frameworks'] = ['Jest', 'React Testing Library', 'Cypress']
+            industry_standards['performance']['metrics'] = ['Core Web Vitals', 'Lighthouse score']
+        elif framework == 'python':
+            industry_standards['testing']['frameworks'] = ['pytest', 'unittest', 'coverage.py']
+            industry_standards['code_quality']['tools'] = ['pylint', 'black', 'mypy']
+        elif framework == 'vue':
+            industry_standards['testing']['frameworks'] = ['Jest', 'Vue Test Utils', 'Vitest']
+        elif framework == 'angular':
+            industry_standards['testing']['frameworks'] = ['Jasmine', 'Karma', 'Protractor']
+
+        return industry_standards
 
     def _validate_category(self, structure_data: Dict[str, Any], category: str,
                           standards: Dict[str, Any], strict_mode: bool) -> Tuple[float, List[str], List[str]]:

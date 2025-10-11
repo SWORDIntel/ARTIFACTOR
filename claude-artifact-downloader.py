@@ -1695,16 +1695,88 @@ class ClaudeArtifactDownloader:
         logger.info(f"Generated manifest: {manifest_path}")
 
     def _parse_conversation_page(self, html_content: str) -> List[Artifact]:
-        """Parse Claude.ai conversation page HTML (placeholder)"""
-        # This would need to be implemented based on actual Claude.ai page structure
+        """Parse Claude.ai conversation page HTML with multiple detection strategies"""
         artifacts = []
 
-        # Example pattern matching (would need real implementation)
-        # artifact_pattern = r'<div class="artifact".*?</div>'
-        # matches = re.findall(artifact_pattern, html_content, re.DOTALL)
+        try:
+            # Strategy 1: Look for code blocks with language hints
+            code_block_pattern = r'<code[^>]*(?:class="language-(\w+)")?[^>]*>(.*?)</code>'
+            code_matches = re.findall(code_block_pattern, html_content, re.DOTALL)
 
-        logger.warning("Conversation page parsing not implemented - would need Claude.ai page structure analysis")
+            for i, (lang, content) in enumerate(code_matches):
+                if content and len(content.strip()) > 20:  # Minimum content length
+                    artifacts.append(Artifact(
+                        id=f"code_block_{i}",
+                        title=f"Code Block {i+1}" + (f" ({lang})" if lang else ""),
+                        content=self._html_unescape(content),
+                        type=self._detect_artifact_type_from_extension(f".{lang}" if lang else ""),
+                        language=lang or self._detect_language_from_content(content)
+                    ))
+
+            # Strategy 2: Look for pre-formatted text blocks
+            pre_pattern = r'<pre[^>]*>(.*?)</pre>'
+            pre_matches = re.findall(pre_pattern, html_content, re.DOTALL)
+
+            for i, content in enumerate(pre_matches):
+                if content and len(content.strip()) > 20:
+                    # Skip if already captured in code blocks
+                    if not any(content in a.content for a in artifacts):
+                        artifacts.append(Artifact(
+                            id=f"pre_block_{i}",
+                            title=f"Pre-formatted Block {i+1}",
+                            content=self._html_unescape(content),
+                            type=self._detect_artifact_type_from_content(content),
+                            language=self._detect_language_from_content(content)
+                        ))
+
+            # Strategy 3: Look for JSON data structures
+            json_pattern = r'({[\s\S]*?})'
+            potential_json = re.findall(json_pattern, html_content)
+
+            for i, content in enumerate(potential_json):
+                try:
+                    # Validate it's actual JSON
+                    json.loads(self._html_unescape(content))
+                    if len(content) > 50:  # Meaningful JSON
+                        artifacts.append(Artifact(
+                            id=f"json_data_{i}",
+                            title=f"JSON Data {i+1}",
+                            content=self._html_unescape(content),
+                            type="application/json",
+                            language="json"
+                        ))
+                except:
+                    pass  # Not valid JSON
+
+            # Strategy 4: Look for inline code snippets
+            inline_code_pattern = r'<code[^>]*>([^<]{20,})</code>'
+            inline_matches = re.findall(inline_code_pattern, html_content)
+
+            for i, content in enumerate(inline_matches):
+                # Skip if already captured
+                if not any(content in a.content for a in artifacts):
+                    artifacts.append(Artifact(
+                        id=f"inline_code_{i}",
+                        title=f"Code Snippet {i+1}",
+                        content=self._html_unescape(content),
+                        type="text/plain",
+                        language=self._detect_language_from_content(content)
+                    ))
+
+            if artifacts:
+                logger.info(f"Successfully parsed {len(artifacts)} artifacts from conversation page")
+            else:
+                logger.warning("No artifacts found in conversation page HTML")
+
+        except Exception as e:
+            logger.error(f"Error parsing conversation page: {e}")
+
         return artifacts
+
+    def _html_unescape(self, text: str) -> str:
+        """Unescape HTML entities"""
+        import html
+        return html.unescape(text).strip()
 
     def _parse_json_export(self, data: dict) -> List[Artifact]:
         """Parse JSON export data"""

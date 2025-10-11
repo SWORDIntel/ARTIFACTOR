@@ -666,9 +666,75 @@ class ChromeExtensionPatcher:
             patched
         )
 
-        # Add input validation
-        if "user input" in patched.lower():
-            patched = "// TODO: Add input validation\n" + patched
+        # Add comprehensive input validation helper if needed
+        if "user input" in patched.lower() and "validateInput" not in patched:
+            validation_helper = """
+/**
+ * Validate and sanitize user input to prevent XSS and injection attacks
+ * @param input - Raw user input string
+ * @param options - Validation options (maxLength, allowedChars, etc.)
+ * @returns Sanitized input string or null if invalid
+ */
+function validateInput(input: string, options: {
+    maxLength?: number,
+    allowedPattern?: RegExp,
+    stripHtml?: boolean
+} = {}): string | null {
+    if (!input || typeof input !== 'string') return null;
+
+    // Check max length
+    if (options.maxLength && input.length > options.maxLength) {
+        input = input.substring(0, options.maxLength);
+    }
+
+    // Strip HTML tags if requested
+    if (options.stripHtml) {
+        input = input.replace(/<[^>]*>/g, '');
+    }
+
+    // Validate against allowed pattern
+    if (options.allowedPattern && !options.allowedPattern.test(input)) {
+        return null;
+    }
+
+    // Basic XSS prevention - escape special characters
+    input = input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\\//g, '&#x2F;');
+
+    return input;
+}
+
+"""
+            patched = validation_helper + patched
+
+        # Enhance URL validation for security
+        if re.search(r'window\.location|href\s*=', patched) and "isValidUrl" not in patched:
+            url_validation_helper = """
+/**
+ * Validate URL to prevent open redirect vulnerabilities
+ * @param url - URL string to validate
+ * @returns true if URL is safe, false otherwise
+ */
+function isValidUrl(url: string): boolean {
+    try {
+        const parsedUrl = new URL(url);
+        // Only allow https and relative URLs
+        return parsedUrl.protocol === 'https:' ||
+               parsedUrl.protocol === 'chrome-extension:' ||
+               url.startsWith('/');
+    } catch {
+        // If URL parsing fails, only allow relative paths
+        return url.startsWith('/') && !url.startsWith('//');
+    }
+}
+
+"""
+            patched = url_validation_helper + patched
 
         return patched
 

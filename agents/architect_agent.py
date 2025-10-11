@@ -866,17 +866,153 @@ class ArchitectAgent:
         }
 
     def _analyze_convention_adherence(self, structure: Dict[str, Any], project_type: str, framework: str) -> Dict[str, Any]:
-        """Analyze adherence to conventions"""
+        """Analyze adherence to conventions with detailed analysis"""
         inconsistencies = []
         adherence_score = 1.0
+        conventions_checked = []
 
-        # Check against known conventions for the project type and framework
-        # This is a placeholder for more detailed analysis
+        try:
+            # Get architecture pattern for the project type
+            architecture = self.architecture_patterns.get(project_type, {})
+            recommended_modules = architecture.get('recommended_modules', [])
+
+            # Check for recommended modules presence
+            structure_str = str(structure).lower()
+            missing_modules = []
+
+            for module in recommended_modules:
+                if module not in structure_str:
+                    missing_modules.append(module)
+                    adherence_score -= 0.1
+                    inconsistencies.append(f"Missing recommended module: {module}")
+                else:
+                    conventions_checked.append(f"Found recommended module: {module}")
+
+            # Check for anti-patterns
+            anti_patterns = architecture.get('anti_patterns', [])
+            detected_anti_patterns = []
+
+            for pattern in anti_patterns:
+                if self._detect_anti_pattern(pattern, structure, []):
+                    detected_anti_patterns.append(pattern)
+                    adherence_score -= 0.15
+                    inconsistencies.append(f"Detected anti-pattern: {pattern.replace('_', ' ')}")
+                else:
+                    conventions_checked.append(f"No {pattern} anti-pattern detected")
+
+            # Framework-specific convention checks
+            if framework:
+                framework_checks = self._check_framework_conventions(structure, framework)
+                adherence_score -= (1 - framework_checks['score'])
+                inconsistencies.extend(framework_checks['issues'])
+                conventions_checked.extend(framework_checks['passes'])
+
+            # Check core principles adherence
+            core_principles = architecture.get('core_principles', [])
+            for principle in core_principles:
+                principle_check = self._check_principle_adherence(principle, structure, project_type)
+                if not principle_check['adhered']:
+                    adherence_score -= 0.08
+                    inconsistencies.append(f"Principle not followed: {principle.replace('_', ' ')}")
+                else:
+                    conventions_checked.append(f"Principle followed: {principle.replace('_', ' ')}")
+
+            # Ensure score is between 0 and 1
+            adherence_score = max(0.0, min(1.0, adherence_score))
+
+        except Exception as e:
+            self.logger.warning(f"Convention adherence analysis error: {e}")
+            # Return neutral score on error
+            adherence_score = 0.5
 
         return {
             'adherence_score': adherence_score,
-            'inconsistencies': inconsistencies
+            'inconsistencies': inconsistencies,
+            'conventions_checked': conventions_checked,
+            'missing_modules': missing_modules if 'missing_modules' in locals() else [],
+            'detected_anti_patterns': detected_anti_patterns if 'detected_anti_patterns' in locals() else []
         }
+
+    def _check_framework_conventions(self, structure: Dict[str, Any], framework: str) -> Dict[str, Any]:
+        """Check framework-specific conventions"""
+        issues = []
+        passes = []
+        score = 1.0
+
+        if framework == 'react':
+            # Check for React-specific conventions
+            structure_str = str(structure).lower()
+
+            if 'components' not in structure_str:
+                issues.append("React project should have a 'components' directory")
+                score -= 0.2
+            else:
+                passes.append("Has components directory")
+
+            if 'hooks' not in structure_str and 'use' not in structure_str:
+                issues.append("Consider adding custom hooks directory")
+                score -= 0.1
+            else:
+                passes.append("Has hooks or custom hooks")
+
+        elif framework == 'python':
+            # Check for Python-specific conventions
+            if '__init__.py' not in str(structure):
+                issues.append("Python packages should have __init__.py files")
+                score -= 0.2
+            else:
+                passes.append("Has __init__.py files")
+
+            structure_lower = str(structure).lower()
+            if 'tests' not in structure_lower and 'test_' not in structure_lower:
+                issues.append("Python project should have tests directory or test files")
+                score -= 0.15
+            else:
+                passes.append("Has test structure")
+
+        elif framework in ['vue', 'angular', 'nodejs']:
+            # Check for Node.js project conventions
+            if 'package.json' not in str(structure):
+                issues.append("Node.js project should have package.json")
+                score -= 0.3
+            else:
+                passes.append("Has package.json")
+
+        return {
+            'score': max(0.0, score),
+            'issues': issues,
+            'passes': passes
+        }
+
+    def _check_principle_adherence(self, principle: str, structure: Dict[str, Any], project_type: str) -> Dict[str, Any]:
+        """Check adherence to specific architectural principle"""
+        structure_str = str(structure).lower()
+
+        if principle == 'separation_of_concerns':
+            # Check if code, tests, and config are separated
+            has_separation = ('src' in structure_str or 'app' in structure_str) and \
+                           ('test' in structure_str or 'spec' in structure_str)
+            return {'adhered': has_separation, 'reason': 'Proper separation of source and tests'}
+
+        elif principle == 'component_isolation':
+            # Check if components are properly isolated
+            has_isolation = 'components' in structure_str or 'component' in structure_str
+            return {'adhered': has_isolation, 'reason': 'Components are isolated'}
+
+        elif principle == 'layered_architecture':
+            # Check for proper layering (models, views, controllers)
+            has_layers = all(layer in structure_str for layer in ['model', 'view', 'controller']) or \
+                        all(layer in structure_str for layer in ['model', 'service', 'route'])
+            return {'adhered': has_layers, 'reason': 'Proper layered architecture'}
+
+        elif principle == 'modular_architecture':
+            # Check for modular structure
+            depth = self._calculate_max_depth(structure)
+            has_modules = depth >= 2  # At least some level of organization
+            return {'adhered': has_modules, 'reason': 'Modular organization present'}
+
+        # Default: assume adherence if principle not specifically checked
+        return {'adhered': True, 'reason': f'Principle {principle} assumed present'}
 
     def _analyze_maintainability(self, structure: Dict[str, Any], file_list: List[str]) -> Dict[str, Any]:
         """Analyze maintainability aspects"""
