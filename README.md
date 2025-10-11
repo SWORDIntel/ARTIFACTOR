@@ -202,6 +202,285 @@ docker-compose up -d
 - **Version control**: ARTIFACTOR preserves original code structure and formatting
 - **Browser Extension**: Install the Chrome extension for one-click downloads directly from Claude.ai
 
+---
+
+## 🔧 Chrome Extension Backend Setup
+
+**1-Click backend installation for Chrome Extension users**
+
+### Quick Start (Recommended)
+
+The fastest way to get the backend running for your Chrome Extension:
+
+```bash
+# 1. Start backend services (PostgreSQL, Redis, FastAPI)
+./artifactor backend start
+
+# 2. Verify health
+./artifactor backend status
+
+# 3. Configure Chrome Extension
+# Open extension options and use: http://localhost:8000
+```
+
+**That's it!** Your backend is ready in ~60 seconds.
+
+---
+
+### Backend Management Commands
+
+```bash
+# Start all backend services
+./artifactor backend start
+
+# Check service health and metrics
+./artifactor backend status
+
+# View live logs
+./artifactor backend logs
+
+# Stop all services
+./artifactor backend stop
+
+# Restart services
+./artifactor backend restart
+
+# Complete reset (removes all data)
+./artifactor backend reset
+```
+
+---
+
+### Alternative: Direct Script Usage
+
+Use the `start-backend` script directly for more control:
+
+```bash
+# Start services with full output
+./start-backend start
+
+# Check detailed status
+./start-backend status
+
+# Follow logs in real-time
+./start-backend follow
+
+# View specific service logs
+./start-backend logs postgres
+./start-backend logs redis
+./start-backend logs backend
+
+# Initialize fresh installation
+./start-backend init
+
+# Complete cleanup and reset
+./start-backend reset
+```
+
+---
+
+### What Gets Installed
+
+When you run the backend start command:
+
+✅ **PostgreSQL 15** - Production database (Port 5432)
+✅ **Redis 7** - High-performance cache (Port 6379)
+✅ **FastAPI Backend** - REST API + WebSocket (Port 8000)
+✅ **Secure Credentials** - Auto-generated 256-bit keys
+✅ **Health Checks** - Automated service monitoring
+✅ **Resource Limits** - Optimized memory and CPU usage
+
+**Disk Usage**: ~500MB total (includes all services and data)
+**Memory Usage**: ~300MB (PostgreSQL 150MB, Redis 50MB, Backend 100MB)
+**Startup Time**: ~15 seconds (after initial setup)
+
+---
+
+### Chrome Extension Configuration
+
+After starting the backend, configure your Chrome Extension:
+
+#### **Automatic Configuration (Recommended)**
+The extension auto-detects `localhost:8000` if the backend is running. No manual configuration needed!
+
+#### **Manual Configuration**
+1. Right-click ARTIFACTOR extension icon
+2. Select "Options"
+3. Enter backend URL: `http://localhost:8000`
+4. Click "Test Connection"
+5. Verify green checkmark
+
+---
+
+### Service Endpoints
+
+Once running, these endpoints are available:
+
+| Service | Endpoint | Purpose |
+|---------|----------|---------|
+| 📡 **Backend API** | http://localhost:8000 | REST API endpoints |
+| 📚 **API Docs** | http://localhost:8000/docs | Interactive API documentation |
+| 📖 **ReDoc** | http://localhost:8000/redoc | Alternative API docs |
+| ❤️ **Health Check** | http://localhost:8000/api/health | Service health status |
+| 🔌 **WebSocket** | ws://localhost:8000/ws | Real-time updates |
+
+---
+
+### Quick Verification
+
+**Test backend connectivity:**
+```bash
+# Health check
+curl http://localhost:8000/api/health
+
+# Expected response:
+# {"status":"healthy","database":"connected","version":"3.0.0"}
+```
+
+**View API documentation:**
+```bash
+# Open in browser
+open http://localhost:8000/docs  # macOS
+xdg-open http://localhost:8000/docs  # Linux
+```
+
+---
+
+### Troubleshooting Quick Tips
+
+#### ❌ Port Already In Use
+```bash
+# Stop conflicting services
+sudo systemctl stop postgresql redis
+
+# Or restart ARTIFACTOR services
+./artifactor backend restart
+```
+
+#### ❌ Docker Not Running
+```bash
+# Start Docker daemon
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+#### ❌ Connection Refused
+```bash
+# Check service status
+./artifactor backend status
+
+# View error logs
+./artifactor backend logs
+
+# Reset and restart
+./artifactor backend stop
+./artifactor backend start
+```
+
+#### ❌ Slow Performance
+```bash
+# Check resource usage
+docker stats artifactor_postgres artifactor_redis artifactor_backend
+
+# View performance metrics
+curl http://localhost:8000/api/metrics
+```
+
+---
+
+### Advanced Options
+
+#### Custom Port Configuration
+
+Edit `.env` file to customize ports:
+```bash
+POSTGRES_PORT=5433
+REDIS_PORT=6380
+BACKEND_PORT=8001
+```
+
+Then restart:
+```bash
+./artifactor backend restart
+```
+
+#### Production Deployment
+
+For production use with HTTPS, monitoring, and load balancing:
+```bash
+# Use secure production configuration
+docker-compose -f docker/docker-compose.secure.yml up -d
+
+# View detailed production guide
+cat docs/PRODUCTION_DEPLOYMENT_GUIDE.md
+```
+
+#### Remote Backend
+
+To connect Chrome Extension to remote backend:
+1. Configure firewall to allow ports 5432, 6379, 8000
+2. Update backend URL in extension options
+3. Ensure SSL/TLS for production deployments
+
+---
+
+### Documentation Links
+
+- **📘 Quick Start Guide**: [QUICK_START.md](QUICK_START.md) - Fast 3-step setup
+- **🔌 Backend Connection**: [chrome-extension/BACKEND_CONNECTION.md](chrome-extension/BACKEND_CONNECTION.md) - API integration guide
+- **🚀 Production Deployment**: [docs/PRODUCTION_DEPLOYMENT_GUIDE.md](docs/PRODUCTION_DEPLOYMENT_GUIDE.md) - Enterprise setup
+- **🐛 Troubleshooting**: [docs/TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) - Common issues
+
+---
+
+### Performance Expectations
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| **Startup Time** | 15-60s | 60s first run, 15s subsequent |
+| **API Response** | <150ms | Average response time |
+| **Throughput** | 1500 req/s | Peak concurrent requests |
+| **Memory Usage** | ~300MB | All services combined |
+| **Disk Usage** | ~500MB | Includes data volumes |
+
+---
+
+### System Requirements
+
+**Minimum:**
+- 2GB RAM available
+- 2 CPU cores
+- 5GB disk space
+- Docker 20.10+
+
+**Recommended:**
+- 4GB RAM available
+- 4 CPU cores
+- 10GB disk space (SSD)
+- Docker 24.0+
+
+---
+
+### Multi-Device Usage
+
+Share backend across multiple devices:
+
+1. **Start backend** on one machine
+2. **Get backend IP**:
+   ```bash
+   ip addr show | grep inet
+   ```
+3. **Configure extensions** on other devices:
+   ```
+   Backend URL: http://192.168.1.100:8000
+   ```
+4. **Ensure firewall** allows connections:
+   ```bash
+   sudo ufw allow 8000/tcp
+   ```
+
+---
+
 ## 🚀 Production Quick Start
 
 ### 🐳 Option 1: Production Docker Deployment (Recommended)

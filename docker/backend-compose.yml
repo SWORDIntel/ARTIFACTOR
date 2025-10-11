@@ -1,0 +1,162 @@
+# ARTIFACTOR v3.0 - Backend Services Only Configuration
+# Purpose: Minimal backend services for Chrome Extension integration
+# Services: PostgreSQL 15, Redis 7, FastAPI Backend
+# Usage: docker-compose -f docker/backend-compose.yml up -d
+
+version: '3.8'
+
+services:
+  # PostgreSQL 15 Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: artifactor_backend_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-artifactor_v3}
+      POSTGRES_USER: ${POSTGRES_USER:-artifactor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-artifactor}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - backend_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - artifactor_backend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-artifactor} -d ${POSTGRES_DB:-artifactor_v3}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Redis 7 Cache
+  redis:
+    image: redis:7-alpine
+    container_name: artifactor_backend_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - backend_redis_data:/data
+    networks:
+      - artifactor_backend_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+
+  # FastAPI Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: artifactor_backend_api
+    environment:
+      # Database Configuration
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-artifactor}:${POSTGRES_PASSWORD:-artifactor}@postgres:5432/${POSTGRES_DB:-artifactor_v3}
+      - REDIS_URL=redis://redis:6379
+
+      # Security Configuration
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-false}
+
+      # CORS Configuration - Chrome Extension Support
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","chrome-extension://*"]
+
+      # API Configuration
+      - API_V1_PREFIX=/api
+      - API_TITLE=ARTIFACTOR Backend API
+      - API_VERSION=3.0.0
+
+      # Performance Configuration
+      - REDIS_CACHE_ENABLED=true
+      - CACHE_TTL=3600
+      - MAX_UPLOAD_SIZE=104857600
+
+      # Feature Flags
+      - ML_CLASSIFICATION_ENABLED=${ML_CLASSIFICATION_ENABLED:-true}
+      - SEMANTIC_SEARCH_ENABLED=${SEMANTIC_SEARCH_ENABLED:-true}
+      - COLLABORATION_ENABLED=${COLLABORATION_ENABLED:-true}
+      - PLUGIN_SYSTEM_ENABLED=${PLUGIN_SYSTEM_ENABLED:-true}
+
+      # Monitoring
+      - METRICS_ENABLED=${METRICS_ENABLED:-true}
+      - AUDIT_LOGGING_ENABLED=${AUDIT_LOGGING_ENABLED:-true}
+    volumes:
+      # Upload data persistence
+      - backend_upload_data:/app/uploads
+      # Optional: Development mode volume mounts (uncomment for live reload)
+      # - ../backend/src:/app/src:ro
+      # - ../backend/requirements.txt:/app/requirements.txt:ro
+    ports:
+      - "8000:8000"
+    networks:
+      - artifactor_backend_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.2'
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2 --log-level info
+
+# Named Volumes
+volumes:
+  backend_postgres_data:
+    driver: local
+    name: artifactor_backend_postgres_data
+  backend_redis_data:
+    driver: local
+    name: artifactor_backend_redis_data
+  backend_upload_data:
+    driver: local
+    name: artifactor_backend_upload_data
+
+# Network Configuration
+networks:
+  artifactor_backend_network:
+    driver: bridge
+    name: artifactor_backend_network
+    driver_opts:
+      com.docker.network.bridge.name: artifactor_backend0
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.driver.mtu: 1500
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/16
+          gateway: 172.22.0.1

@@ -40,7 +40,7 @@ show_help() {
     echo "  ./artifactor [COMMAND] [OPTIONS]"
     echo ""
     echo -e "${WHITE}Commands:${NC}"
-    echo -e "  ${GREEN}gui${NC}         Launch GUI interface (default)"
+    echo -e "  ${GREEN}gui${NC}         Launch GUI interface"
     echo -e "  ${GREEN}cli${NC}         Launch command-line interface"
     echo -e "  ${GREEN}setup${NC}       Setup virtual environment"
     echo -e "  ${GREEN}status${NC}      Show system status"
@@ -48,6 +48,7 @@ show_help() {
     echo -e "  ${GREEN}agent${NC}       Test agent coordination"
     echo -e "  ${GREEN}update${NC}      Update dependencies"
     echo -e "  ${GREEN}clean${NC}       Clean virtual environment"
+    echo -e "  ${GREEN}backend${NC}     Manage backend services (start/stop/status/logs)"
     echo ""
     echo -e "${WHITE}Options:${NC}"
     echo -e "  ${YELLOW}--force${NC}     Force recreation of environment"
@@ -56,10 +57,21 @@ show_help() {
     echo -e "  ${YELLOW}--help${NC}      Show this help"
     echo ""
     echo -e "${WHITE}Examples:${NC}"
-    echo "  ./artifactor                    # Launch GUI"
+    echo "  ./artifactor --help             # Show this help"
+    echo "  ./artifactor gui                # Launch GUI"
     echo "  ./artifactor cli                # Launch CLI"
     echo "  ./artifactor setup --force      # Rebuild environment"
     echo "  ./artifactor test --verbose     # Run verbose tests"
+    echo "  ./artifactor backend start      # Start backend services"
+    echo "  ./artifactor backend status     # Check backend health"
+    echo ""
+    echo -e "${WHITE}Backend Commands:${NC}"
+    echo "  ./artifactor backend start      # Start PostgreSQL, Redis, FastAPI"
+    echo "  ./artifactor backend stop       # Stop all backend services"
+    echo "  ./artifactor backend restart    # Restart services"
+    echo "  ./artifactor backend status     # Show health and metrics"
+    echo "  ./artifactor backend logs       # View service logs"
+    echo "  ./artifactor backend --help     # Show backend help"
     echo ""
     echo -e "${WHITE}Repository:${NC} https://github.com/SWORDIntel/ARTIFACTOR"
 }
@@ -252,6 +264,28 @@ clean_env() {
     fi
 }
 
+# Backend management
+manage_backend() {
+    local backend_script="$SCRIPT_DIR/start-backend"
+
+    # Check if start-backend script exists
+    if [[ ! -f "$backend_script" ]]; then
+        echo -e "${RED}❌ Backend management script not found: $backend_script${NC}"
+        echo ""
+        echo -e "${YELLOW}The backend management script should be located at:${NC}"
+        echo "  $backend_script"
+        echo ""
+        echo -e "${YELLOW}Please ensure the ARTIFACTOR v3.0 backend is properly installed.${NC}"
+        return 1
+    fi
+
+    # Make sure it's executable
+    chmod +x "$backend_script" 2>/dev/null || true
+
+    # Route all arguments to start-backend script
+    "$backend_script" "$@"
+}
+
 # Main function
 main() {
     # Parse global flags first
@@ -279,13 +313,15 @@ main() {
     # Restore args
     set -- "${args[@]}"
 
-    # Show banner for interactive use
-    if [[ $# -eq 0 || "$1" != "status" ]]; then
+    # Parse command first to determine banner display
+    local command="${1:-help}"
+
+    # Show banner for interactive use (skip for status and backend commands)
+    if [[ $# -eq 0 || ("$command" != "status" && "$command" != "backend") ]]; then
         show_banner
     fi
 
-    # Parse command
-    local command="${1:-gui}"
+    # Now shift the command
     shift || true
 
     case "$command" in
@@ -312,6 +348,9 @@ main() {
             ;;
         "clean")
             clean_env "$@"
+            ;;
+        "backend")
+            manage_backend "$@"
             ;;
         "help"|"--help"|"-h")
             show_help

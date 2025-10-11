@@ -1,0 +1,796 @@
+#!/bin/bash
+# ARTIFACTOR v3.0.0 - Backend Service Manager
+# Chrome Extension Backend Orchestrator
+# Repository: https://github.com/SWORDIntel/ARTIFACTOR
+
+set -e
+
+# ============================================================================
+# CONSTANTS & CONFIGURATION
+# ============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_NAME="ARTIFACTOR"
+VERSION="3.0.0"
+
+# Service configuration
+DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker/docker-compose.yml"
+ENV_FILE="${SCRIPT_DIR}/.env"
+QUICK_ENV_SCRIPT="${SCRIPT_DIR}/scripts/quick-env.sh"
+
+# Service ports
+POSTGRES_PORT=5432
+REDIS_PORT=6379
+BACKEND_PORT=8000
+
+# Health check settings
+HEALTH_CHECK_TIMEOUT=120  # 2 minutes
+HEALTH_CHECK_INTERVAL=2   # Check every 2 seconds
+
+# Colors for beautiful output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+GRAY='\033[0;90m'
+NC='\033[0m' # No Color
+
+# Unicode symbols
+CHECKMARK="${GREEN}✓${NC}"
+CROSS="${RED}✗${NC}"
+WARNING="${YELLOW}⚠${NC}"
+INFO="${BLUE}ℹ${NC}"
+ROCKET="${CYAN}🚀${NC}"
+WRENCH="${PURPLE}🔧${NC}"
+LOCK="${GREEN}🔐${NC}"
+DATABASE="${BLUE}🗄${NC}"
+CACHE="${PURPLE}⚡${NC}"
+API="${CYAN}📡${NC}"
+
+# ============================================================================
+# BANNER & UI FUNCTIONS
+# ============================================================================
+
+show_banner() {
+    echo -e "${CYAN}"
+    echo "  █████╗ ██████╗ ████████╗██╗███████╗ █████╗  ██████╗████████╗ ██████╗ ██████╗ "
+    echo " ██╔══██╗██╔══██╗╚══██╔══╝██║██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗"
+    echo " ███████║██████╔╝   ██║   ██║█████╗  ███████║██║        ██║   ██║   ██║██████╔╝"
+    echo " ██╔══██║██╔══██╗   ██║   ██║██╔══╝  ██╔══██║██║        ██║   ██║   ██║██╔══██╗"
+    echo " ██║  ██║██║  ██║   ██║   ██║██║     ██║  ██║╚██████╗   ██║   ╚██████╔╝██║  ██║"
+    echo " ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝"
+    echo -e "${WHITE}                Backend Service Manager v${VERSION}${NC}"
+    echo -e "${PURPLE}              Chrome Extension Backend Orchestrator${NC}"
+    echo ""
+}
+
+print_section() {
+    local title="$1"
+    echo ""
+    echo -e "${CYAN}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${WHITE}  $title${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════════${NC}"
+    echo ""
+}
+
+print_step() {
+    local step="$1"
+    echo -e "${BLUE}▶${NC} $step"
+}
+
+print_success() {
+    local message="$1"
+    echo -e "  ${CHECKMARK} ${GREEN}$message${NC}"
+}
+
+print_error() {
+    local message="$1"
+    echo -e "  ${CROSS} ${RED}$message${NC}"
+}
+
+print_warning() {
+    local message="$1"
+    echo -e "  ${WARNING} ${YELLOW}$message${NC}"
+}
+
+print_info() {
+    local message="$1"
+    echo -e "  ${INFO} ${WHITE}$message${NC}"
+}
+
+show_progress() {
+    local current=$1
+    local total=$2
+    local message=$3
+    local percent=$((current * 100 / total))
+    local filled=$((percent / 5))
+    local empty=$((20 - filled))
+
+    printf "\r  ["
+    printf "%${filled}s" | tr ' ' '='
+    printf ">"
+    printf "%${empty}s" | tr ' ' ' '
+    printf "] %3d%% - %s" "$percent" "$message"
+}
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+log() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+    case "$level" in
+        "INFO")
+            echo -e "${GRAY}[${timestamp}]${NC} ${INFO} $message"
+            ;;
+        "SUCCESS")
+            echo -e "${GRAY}[${timestamp}]${NC} ${CHECKMARK} $message"
+            ;;
+        "ERROR")
+            echo -e "${GRAY}[${timestamp}]${NC} ${CROSS} $message"
+            ;;
+        "WARNING")
+            echo -e "${GRAY}[${timestamp}]${NC} ${WARNING} $message"
+            ;;
+    esac
+}
+
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+port_available() {
+    local port=$1
+    ! nc -z localhost "$port" >/dev/null 2>&1
+}
+
+get_service_status() {
+    local service=$1
+    docker-compose -f "$DOCKER_COMPOSE_FILE" ps "$service" 2>/dev/null | grep -q "Up" && echo "running" || echo "stopped"
+}
+
+check_docker_running() {
+    docker info >/dev/null 2>&1
+}
+
+get_container_health() {
+    local container=$1
+    docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null || echo "unknown"
+}
+
+wait_for_health() {
+    local service=$1
+    local container=$2
+    local timeout=$3
+    local elapsed=0
+
+    print_step "Waiting for $service to be healthy..."
+
+    while [ $elapsed -lt $timeout ]; do
+        local health=$(get_container_health "$container")
+
+        if [ "$health" = "healthy" ]; then
+            print_success "$service is healthy"
+            return 0
+        fi
+
+        show_progress $elapsed $timeout "$service health check ($health)"
+        sleep $HEALTH_CHECK_INTERVAL
+        elapsed=$((elapsed + HEALTH_CHECK_INTERVAL))
+    done
+
+    echo "" # New line after progress bar
+    print_error "$service failed health check after ${timeout}s"
+    return 1
+}
+
+get_disk_space() {
+    df -h "$SCRIPT_DIR" | awk 'NR==2 {print $4}'
+}
+
+get_memory_available() {
+    free -h | awk '/^Mem:/ {print $7}'
+}
+
+# ============================================================================
+# PRE-FLIGHT CHECKS
+# ============================================================================
+
+check_docker() {
+    print_step "Checking Docker installation..."
+
+    if ! command_exists docker; then
+        print_error "Docker is not installed"
+        echo ""
+        echo -e "${YELLOW}Installation instructions:${NC}"
+        echo "  Ubuntu/Debian: curl -fsSL https://get.docker.com | sh"
+        echo "  Fedora/RHEL: sudo dnf install docker-ce"
+        echo "  Arch: sudo pacman -S docker"
+        echo ""
+        return 1
+    fi
+
+    print_success "Docker installed: $(docker --version | cut -d' ' -f3 | tr -d ',')"
+
+    print_step "Checking Docker daemon..."
+    if ! check_docker_running; then
+        print_error "Docker daemon is not running"
+        echo ""
+        echo -e "${YELLOW}Start Docker with:${NC}"
+        echo "  sudo systemctl start docker"
+        echo "  sudo systemctl enable docker"
+        echo ""
+        return 1
+    fi
+
+    print_success "Docker daemon is running"
+
+    # Check docker-compose
+    if ! command_exists docker-compose; then
+        print_warning "docker-compose not found, using 'docker compose' instead"
+    else
+        print_success "docker-compose installed: $(docker-compose --version | cut -d' ' -f4 | tr -d ',')"
+    fi
+
+    return 0
+}
+
+check_ports() {
+    print_step "Checking port availability..."
+
+    local ports_ok=true
+
+    if ! port_available $POSTGRES_PORT; then
+        print_error "Port $POSTGRES_PORT (PostgreSQL) is already in use"
+        ports_ok=false
+    else
+        print_success "Port $POSTGRES_PORT (PostgreSQL) is available"
+    fi
+
+    if ! port_available $REDIS_PORT; then
+        print_error "Port $REDIS_PORT (Redis) is already in use"
+        ports_ok=false
+    else
+        print_success "Port $REDIS_PORT (Redis) is available"
+    fi
+
+    if ! port_available $BACKEND_PORT; then
+        print_error "Port $BACKEND_PORT (Backend API) is already in use"
+        ports_ok=false
+    else
+        print_success "Port $BACKEND_PORT (Backend API) is available"
+    fi
+
+    if [ "$ports_ok" = false ]; then
+        echo ""
+        echo -e "${YELLOW}Troubleshooting:${NC}"
+        echo "  • Stop conflicting services: sudo systemctl stop postgresql redis"
+        echo "  • Check what's using ports: sudo netstat -tlnp | grep -E '5432|6379|8000'"
+        echo "  • Or use 'stop' command to stop ARTIFACTOR services"
+        return 1
+    fi
+
+    return 0
+}
+
+check_disk_space() {
+    print_step "Checking disk space..."
+
+    local available=$(get_disk_space)
+    print_success "Available disk space: $available"
+
+    # Warning if less than 1GB
+    local available_mb=$(df -m "$SCRIPT_DIR" | awk 'NR==2 {print $4}')
+    if [ "$available_mb" -lt 1024 ]; then
+        print_warning "Low disk space (less than 1GB available)"
+    fi
+
+    return 0
+}
+
+check_memory() {
+    print_step "Checking available memory..."
+
+    local available=$(get_memory_available)
+    print_success "Available memory: $available"
+
+    return 0
+}
+
+check_docker_compose_file() {
+    print_step "Checking docker-compose configuration..."
+
+    if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+        print_error "docker-compose.yml not found at: $DOCKER_COMPOSE_FILE"
+        echo ""
+        echo -e "${YELLOW}Troubleshooting:${NC}"
+        echo "  • Verify you're in the ARTIFACTOR directory"
+        echo "  • Check if docker/docker-compose.yml exists"
+        return 1
+    fi
+
+    print_success "docker-compose.yml found"
+
+    # Validate compose file
+    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" config >/dev/null 2>&1; then
+        print_error "docker-compose.yml has syntax errors"
+        return 1
+    fi
+
+    print_success "docker-compose.yml is valid"
+
+    return 0
+}
+
+run_preflight_checks() {
+    print_section "Pre-Flight Checks"
+
+    local checks_passed=true
+
+    check_docker || checks_passed=false
+    check_docker_compose_file || checks_passed=false
+    check_ports || checks_passed=false
+    check_disk_space || checks_passed=false
+    check_memory || checks_passed=false
+
+    if [ "$checks_passed" = false ]; then
+        echo ""
+        print_error "Pre-flight checks failed"
+        return 1
+    fi
+
+    echo ""
+    print_success "All pre-flight checks passed"
+    return 0
+}
+
+# ============================================================================
+# CREDENTIAL MANAGEMENT
+# ============================================================================
+
+check_env_file() {
+    print_step "Checking environment configuration..."
+
+    if [ -f "$ENV_FILE" ]; then
+        print_success "Found .env file"
+
+        # Validate required variables
+        local required_vars=("SECRET_KEY" "POSTGRES_PASSWORD" "DATABASE_URL")
+        local missing_vars=()
+
+        for var in "${required_vars[@]}"; do
+            if ! grep -q "^${var}=" "$ENV_FILE" 2>/dev/null; then
+                missing_vars+=("$var")
+            fi
+        done
+
+        if [ ${#missing_vars[@]} -gt 0 ]; then
+            print_warning "Missing variables: ${missing_vars[*]}"
+            return 1
+        fi
+
+        # Check credential strength
+        local secret_key=$(grep "^SECRET_KEY=" "$ENV_FILE" | cut -d= -f2)
+        if [ ${#secret_key} -lt 32 ]; then
+            print_warning "SECRET_KEY is too short (< 32 characters)"
+            return 1
+        fi
+
+        print_success "Environment variables validated"
+        return 0
+    else
+        print_warning ".env file not found"
+        return 1
+    fi
+}
+
+generate_credentials() {
+    print_section "Credential Management"
+
+    if check_env_file; then
+        print_info "Using existing credentials from .env"
+        return 0
+    fi
+
+    print_step "Generating secure credentials..."
+
+    if [ ! -f "$QUICK_ENV_SCRIPT" ]; then
+        print_error "Quick environment setup script not found: $QUICK_ENV_SCRIPT"
+        return 1
+    fi
+
+    # Run quick-env script
+    cd "$SCRIPT_DIR"
+    if bash "$QUICK_ENV_SCRIPT" >/dev/null 2>&1; then
+        print_success "Secure credentials generated"
+
+        # Verify generation
+        if check_env_file; then
+            print_success "Credentials validated"
+            return 0
+        else
+            print_error "Credential validation failed"
+            return 1
+        fi
+    else
+        print_error "Failed to generate credentials"
+        return 1
+    fi
+}
+
+# ============================================================================
+# SERVICE MANAGEMENT
+# ============================================================================
+
+start_services() {
+    print_section "Starting Backend Services"
+
+    # Pre-flight checks
+    if ! run_preflight_checks; then
+        return 1
+    fi
+
+    # Credential management
+    if ! generate_credentials; then
+        return 1
+    fi
+
+    # Start services
+    print_step "Starting Docker containers..."
+    echo ""
+
+    cd "$SCRIPT_DIR"
+
+    # Start only backend services (postgres, redis, backend)
+    if docker-compose -f "$DOCKER_COMPOSE_FILE" up -d postgres redis backend; then
+        echo ""
+        print_success "Containers started"
+    else
+        echo ""
+        print_error "Failed to start containers"
+        return 1
+    fi
+
+    # Wait for services to be healthy
+    print_section "Health Checks"
+
+    # Wait for PostgreSQL
+    if ! wait_for_health "PostgreSQL" "artifactor_postgres" $HEALTH_CHECK_TIMEOUT; then
+        print_error "PostgreSQL failed to start"
+        show_service_logs "postgres"
+        return 1
+    fi
+
+    # Wait for Redis
+    if ! wait_for_health "Redis" "artifactor_redis" $HEALTH_CHECK_TIMEOUT; then
+        print_error "Redis failed to start"
+        show_service_logs "redis"
+        return 1
+    fi
+
+    # Wait for Backend API
+    if ! wait_for_health "Backend API" "artifactor_backend" $HEALTH_CHECK_TIMEOUT; then
+        print_error "Backend API failed to start"
+        show_service_logs "backend"
+        return 1
+    fi
+
+    # Success summary
+    print_section "Backend Ready"
+
+    echo -e "${GREEN}✓ All services are healthy and running!${NC}"
+    echo ""
+    echo -e "${WHITE}Service Endpoints:${NC}"
+    echo -e "  ${DATABASE} PostgreSQL:  ${CYAN}localhost:${POSTGRES_PORT}${NC}"
+    echo -e "  ${CACHE} Redis:       ${CYAN}localhost:${REDIS_PORT}${NC}"
+    echo -e "  ${API} Backend API: ${CYAN}http://localhost:${BACKEND_PORT}${NC}"
+    echo ""
+    echo -e "${WHITE}API Documentation:${NC}"
+    echo -e "  Swagger UI:  ${CYAN}http://localhost:${BACKEND_PORT}/docs${NC}"
+    echo -e "  ReDoc:       ${CYAN}http://localhost:${BACKEND_PORT}/redoc${NC}"
+    echo -e "  Health:      ${CYAN}http://localhost:${BACKEND_PORT}/api/health${NC}"
+    echo ""
+    echo -e "${WHITE}Chrome Extension Configuration:${NC}"
+    echo -e "  API URL:     ${CYAN}http://localhost:${BACKEND_PORT}/api${NC}"
+    echo -e "  WebSocket:   ${CYAN}ws://localhost:${BACKEND_PORT}/ws${NC}"
+    echo ""
+    echo -e "${GRAY}Use 'start-backend logs' to view service logs${NC}"
+    echo -e "${GRAY}Use 'start-backend stop' to stop all services${NC}"
+    echo ""
+
+    return 0
+}
+
+stop_services() {
+    print_section "Stopping Backend Services"
+
+    cd "$SCRIPT_DIR"
+
+    print_step "Stopping Docker containers..."
+
+    if docker-compose -f "$DOCKER_COMPOSE_FILE" stop postgres redis backend 2>/dev/null; then
+        print_success "Services stopped"
+    else
+        print_warning "Some services may not have been running"
+    fi
+
+    return 0
+}
+
+restart_services() {
+    print_section "Restarting Backend Services"
+
+    stop_services
+    sleep 2
+    start_services
+}
+
+show_status() {
+    print_section "Service Status"
+
+    cd "$SCRIPT_DIR"
+
+    # Check if docker-compose file exists
+    if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+        print_error "docker-compose.yml not found"
+        return 1
+    fi
+
+    # Service status table
+    echo -e "${WHITE}Container Status:${NC}"
+    echo ""
+
+    local services=("postgres:artifactor_postgres:PostgreSQL" "redis:artifactor_redis:Redis" "backend:artifactor_backend:Backend API")
+
+    for service_info in "${services[@]}"; do
+        IFS=':' read -r service container display_name <<< "$service_info"
+
+        local status=$(get_service_status "$service")
+        local health="N/A"
+
+        if [ "$status" = "running" ]; then
+            health=$(get_container_health "$container")
+
+            case "$health" in
+                "healthy")
+                    echo -e "  ${CHECKMARK} ${WHITE}$display_name${NC} - ${GREEN}Running (Healthy)${NC}"
+                    ;;
+                "unhealthy")
+                    echo -e "  ${CROSS} ${WHITE}$display_name${NC} - ${RED}Running (Unhealthy)${NC}"
+                    ;;
+                "starting")
+                    echo -e "  ${WARNING} ${WHITE}$display_name${NC} - ${YELLOW}Starting${NC}"
+                    ;;
+                *)
+                    echo -e "  ${INFO} ${WHITE}$display_name${NC} - ${BLUE}Running${NC}"
+                    ;;
+            esac
+        else
+            echo -e "  ${CROSS} ${WHITE}$display_name${NC} - ${GRAY}Stopped${NC}"
+        fi
+    done
+
+    echo ""
+
+    # Resource usage
+    echo -e "${WHITE}Resource Usage:${NC}"
+    echo ""
+
+    if docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" 2>/dev/null | grep -E "artifactor_(postgres|redis|backend)"; then
+        :
+    else
+        print_info "No running containers"
+    fi
+
+    echo ""
+
+    # System resources
+    echo -e "${WHITE}System Resources:${NC}"
+    echo -e "  Disk Space:  $(get_disk_space) available"
+    echo -e "  Memory:      $(get_memory_available) available"
+    echo ""
+
+    # Port status
+    echo -e "${WHITE}Port Status:${NC}"
+    local ports=(5432 6379 8000)
+    local port_names=("PostgreSQL" "Redis" "Backend API")
+
+    for i in "${!ports[@]}"; do
+        local port=${ports[$i]}
+        local name=${port_names[$i]}
+
+        if port_available $port; then
+            echo -e "  ${INFO} Port $port ($name): ${GRAY}Available${NC}"
+        else
+            echo -e "  ${CHECKMARK} Port $port ($name): ${GREEN}In Use${NC}"
+        fi
+    done
+
+    echo ""
+}
+
+show_service_logs() {
+    local service="$1"
+    local lines="${2:-50}"
+
+    if [ -z "$service" ]; then
+        print_section "Service Logs (All)"
+        docker-compose -f "$DOCKER_COMPOSE_FILE" logs --tail="$lines" postgres redis backend
+    else
+        print_section "Service Logs ($service)"
+        docker-compose -f "$DOCKER_COMPOSE_FILE" logs --tail="$lines" "$service"
+    fi
+}
+
+follow_logs() {
+    local service="$1"
+
+    if [ -z "$service" ]; then
+        print_section "Following All Service Logs"
+        echo -e "${GRAY}Press Ctrl+C to exit${NC}"
+        echo ""
+        docker-compose -f "$DOCKER_COMPOSE_FILE" logs -f postgres redis backend
+    else
+        print_section "Following $service Logs"
+        echo -e "${GRAY}Press Ctrl+C to exit${NC}"
+        echo ""
+        docker-compose -f "$DOCKER_COMPOSE_FILE" logs -f "$service"
+    fi
+}
+
+reset_services() {
+    print_section "Resetting Backend Services"
+
+    print_warning "This will remove all containers, volumes, and data!"
+    echo -e "${YELLOW}Are you sure you want to continue? (yes/no)${NC}"
+    read -r confirmation
+
+    if [ "$confirmation" != "yes" ]; then
+        print_info "Reset cancelled"
+        return 0
+    fi
+
+    cd "$SCRIPT_DIR"
+
+    print_step "Stopping containers..."
+    docker-compose -f "$DOCKER_COMPOSE_FILE" down postgres redis backend 2>/dev/null || true
+
+    print_step "Removing volumes..."
+    docker volume rm artifactor_postgres_data 2>/dev/null || true
+    docker volume rm artifactor_redis_data 2>/dev/null || true
+    docker volume rm artifactor_upload_data 2>/dev/null || true
+
+    print_step "Removing .env file..."
+    rm -f "$ENV_FILE"
+
+    print_success "Reset complete"
+    echo ""
+    print_info "Run 'start-backend start' to initialize fresh services"
+}
+
+initialize_services() {
+    print_section "First-Time Initialization"
+
+    print_step "Creating directory structure..."
+    mkdir -p "$SCRIPT_DIR/docker/init/postgres"
+    print_success "Directories created"
+
+    # Generate credentials
+    if ! generate_credentials; then
+        return 1
+    fi
+
+    print_success "Initialization complete"
+    echo ""
+    print_info "Run 'start-backend start' to launch services"
+}
+
+# ============================================================================
+# HELP & USAGE
+# ============================================================================
+
+show_help() {
+    show_banner
+
+    echo -e "${WHITE}Usage:${NC}"
+    echo "  ./start-backend [COMMAND] [OPTIONS]"
+    echo ""
+    echo -e "${WHITE}Commands:${NC}"
+    echo -e "  ${GREEN}start${NC}          Start all backend services (PostgreSQL, Redis, FastAPI)"
+    echo -e "  ${GREEN}stop${NC}           Stop all backend services"
+    echo -e "  ${GREEN}restart${NC}        Restart all backend services"
+    echo -e "  ${GREEN}status${NC}         Show service health and resource usage"
+    echo -e "  ${GREEN}logs${NC} [service] View service logs (optional: postgres, redis, backend)"
+    echo -e "  ${GREEN}follow${NC} [svc]   Follow logs in real-time"
+    echo -e "  ${GREEN}reset${NC}          Complete cleanup (removes all data)"
+    echo -e "  ${GREEN}init${NC}           First-time setup and initialization"
+    echo -e "  ${GREEN}help${NC}           Show this help message"
+    echo ""
+    echo -e "${WHITE}Examples:${NC}"
+    echo "  ./start-backend start              # Start all services"
+    echo "  ./start-backend status             # Check service health"
+    echo "  ./start-backend logs backend       # View backend API logs"
+    echo "  ./start-backend follow             # Follow all logs"
+    echo "  ./start-backend restart            # Restart services"
+    echo ""
+    echo -e "${WHITE}Backend Services:${NC}"
+    echo -e "  ${DATABASE} PostgreSQL    Port ${POSTGRES_PORT}    (Database)"
+    echo -e "  ${CACHE} Redis         Port ${REDIS_PORT}      (Cache)"
+    echo -e "  ${API} FastAPI       Port ${BACKEND_PORT}      (REST API)"
+    echo ""
+    echo -e "${WHITE}Chrome Extension Configuration:${NC}"
+    echo -e "  API URL:      ${CYAN}http://localhost:${BACKEND_PORT}/api${NC}"
+    echo -e "  WebSocket:    ${CYAN}ws://localhost:${BACKEND_PORT}/ws${NC}"
+    echo -e "  Health Check: ${CYAN}http://localhost:${BACKEND_PORT}/api/health${NC}"
+    echo ""
+    echo -e "${WHITE}Troubleshooting:${NC}"
+    echo "  • Check logs:           ./start-backend logs"
+    echo "  • Verify health:        ./start-backend status"
+    echo "  • Reset everything:     ./start-backend reset"
+    echo "  • Docker issues:        sudo systemctl restart docker"
+    echo ""
+    echo -e "${GRAY}Repository: https://github.com/SWORDIntel/ARTIFACTOR${NC}"
+}
+
+# ============================================================================
+# MAIN ENTRY POINT
+# ============================================================================
+
+main() {
+    # Parse command
+    local command="${1:-help}"
+    shift || true
+
+    case "$command" in
+        "start")
+            show_banner
+            start_services
+            ;;
+        "stop")
+            show_banner
+            stop_services
+            ;;
+        "restart")
+            show_banner
+            restart_services
+            ;;
+        "status")
+            show_banner
+            show_status
+            ;;
+        "logs")
+            show_service_logs "$1" "${2:-50}"
+            ;;
+        "follow")
+            follow_logs "$1"
+            ;;
+        "reset")
+            show_banner
+            reset_services
+            ;;
+        "init")
+            show_banner
+            initialize_services
+            ;;
+        "help"|"--help"|"-h")
+            show_help
+            ;;
+        *)
+            echo -e "${RED}Unknown command: $command${NC}"
+            echo "Use './start-backend help' for usage information"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute main function
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

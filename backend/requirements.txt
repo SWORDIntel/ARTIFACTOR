@@ -57,8 +57,8 @@ pytest-asyncio==0.21.1
 pytest-cov==4.1.0
 httpx==0.25.2  # For testing
 
-# CORS
-python-cors==1.7.0
+# CORS (built into FastAPI, no separate package needed)
+# python-cors==1.7.0 # REMOVED: Package doesn't exist, FastAPI has built-in CORS
 
 # Background tasks
 celery==5.3.4
