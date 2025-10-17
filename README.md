@@ -93,6 +93,24 @@ A fully-secured, performance-optimized web platform for managing Claude.ai artif
 - **Compliance**: Audit logging, security monitoring, vulnerability management
 - **Operational Security**: Automated security validation, continuous monitoring
 
+## 🔑 Environment Setup
+
+Before downloading artifacts, configure credentials locally:
+
+1. Run `./setup-env.sh` to generate `.env` and `.env.example`.
+2. Open `.env` and set the required secrets (keep this file untracked):
+   - `ANTHROPIC_API_KEY=sk-ant-...`
+   - `CLAUDE_SESSION_COOKIE='anthropic-device-id=...; sessionKey=sk-ant-...; ...'`
+3. Load the variables in each terminal session before running CLI tools:
+   ```bash
+   set -a
+   . .env
+   set +a
+   ```
+   Alternatively export them manually (`export CLAUDE_SESSION_COOKIE='...'`).
+
+If the downloader returns `403 Forbidden`, refresh the `sessionKey` cookie in your browser and update `.env`.
+
 ## 📖 **How to Use with Claude.ai**
 
 ### **Step 1: Get Your Claude.ai Artifact URL**

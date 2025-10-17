@@ -37,6 +37,22 @@ ARTIFACTOR v3.0 is a comprehensive artifact management platform that transforms 
 - [Performance Optimization](performance.md) - Optimization techniques and benchmarks
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 
+## 🔑 Credential Setup for Claude Integration
+
+1. Run `./setup-env.sh` in the repository root to generate `.env`.
+2. Add secrets to `.env` (do not commit this file):
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-...
+   CLAUDE_SESSION_COOKIE='anthropic-device-id=...; sessionKey=sk-ant-...; ...'
+   ```
+3. Source the environment before running CLI tools:
+   ```bash
+   set -a
+   . .env
+   set +a
+   ```
+   or export each variable manually. Refresh the `sessionKey` if you encounter HTTP 403 responses.
+
 ## 🎯 Key Features
 
 ### Core Capabilities
