@@ -2,8 +2,8 @@
 
 ### *“The Enterprise-Grade Solution To A Problem Claude Solved With ‘zip -r .’ ”*
 
-> A lovingly over-engineered shrine to scope creep, premature optimization, and the unstoppable march of “just ask the model.”
-> Now **100% redundant** and **proud of it**.
+> A lovingly over-engineered shrine to frustration,scope creep, premature optimization, and the unstoppable march of “just ask the model.”
+> Now **100% redundant** and **proud of it**.(im not)
 
 ---
 
@@ -11,7 +11,7 @@
 
 I built an **enterprise artifact management platform** so you could wrangle Claude’s files like a Fortune 500.
 Then Claude learned the ancient spell: **“please zip the whole project.”**
-Result: this repo became a **museum piece**. Enjoy the tour.
+Result: this repo became a **museum piece**. Enjoy the tour as much as i did making this shit(i didnt)
 
 ---
 
@@ -70,7 +70,7 @@ Result: this repo became a **museum piece**. Enjoy the tour.
 Open Claude and say:
 
 ```
-please zip all these files
+please zip the entire project for me to download
 ```
 
 You’re done.
@@ -82,12 +82,12 @@ You’re done.
 docker compose up -d
 open http://localhost:3000
 paste-claude-url-here
-watch nothing you needed happen beautifully
+watch nothing you needed happen beautifully(note:rarely works anyway)
 ```
 
 ### Step 3: Bask
 
-Marvel as an **87.3% accurate classifier** categorizes the artifacts you already downloaded in one go.
+Marvel as an **87.3% accurate classifier** categorizes the artifacts you already downloaded in one go with a 100% classification accuracy
 
 ---
 
@@ -158,7 +158,7 @@ PRs welcome if they:
 
 ## Credits
 
-* **Past Me**: Engineering.
+* **Past Me**: "Engineering" aka wasting credits at a tremendous rate
 * **Present You**: Laughter.
 * **Claude**: Project Manager who shipped “Zip.”
 
