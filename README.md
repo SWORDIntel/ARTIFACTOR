@@ -9,7 +9,7 @@
 
 ## Why Does This Exist?
 
-I built an **enterprise artifact management platform** so you could wrangle Claude’s files like a Fortune 500.
+I built an **enterprise artifact management platform** so you could wrangle Claude’s files like a Fortune 500 because i JUST COULDNT be bothered to copy 1 by 1 and was like i gotta automate this.
 Then Claude learned the ancient spell: **“please zip the whole project.”**
 Result: this repo became a **museum piece**. Enjoy the tour as much as i did making this shit(i didnt)
 
